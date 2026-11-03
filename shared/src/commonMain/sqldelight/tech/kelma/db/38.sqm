@@ -1,0 +1,5 @@
+-- iOS builds generated uppercase intent identifiers, which KelmaSync rejects. Canonicalize
+-- every queued intent so stuck note marks, card flags, and review retractions can upload.
+UPDATE local_review_retraction_outbox SET intent_id = lower(intent_id) WHERE intent_id != lower(intent_id);
+UPDATE local_card_flag_outbox SET intent_id = lower(intent_id) WHERE intent_id != lower(intent_id);
+UPDATE local_note_mark_outbox SET intent_id = lower(intent_id) WHERE intent_id != lower(intent_id);

@@ -1,0 +1,1 @@
+CREATE INDEX sync_cards_note_guid_ord_idx ON sync_cards(note_guid, ord);
