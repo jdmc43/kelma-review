@@ -117,3 +117,14 @@ The KelmaSync bearer token is stored outside SQLite in Android Keystore-encrypte
 ## License
 
 The application is licensed under Apache License 2.0. See [`LICENSE`](LICENSE) and [`NOTICE`](NOTICE). Dependencies remain subject to their own permissive licenses and are summarized in [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
+
+## Code signing policy
+
+Free code signing provided by [SignPath.io](https://about.signpath.io/), certificate by [SignPath Foundation](https://signpath.org/) (Windows installers). macOS builds are signed with Kelma Tech LLC's Apple Developer ID and notarized by Apple.
+
+- Committers and reviewers: [jdmc43](https://github.com/jdmc43)
+- Approvers: [jdmc43](https://github.com/jdmc43)
+
+Every signed release is built from this repository by GitHub Actions and approved for signing by an approver.
+
+Privacy policy: Kelma Review sends data only to the sync server and account service the user signs in to (KelmaSync; kelma.tech unless another server is chosen). See the [Kelma Review privacy policy](https://kelma.tech/review/privacy).
