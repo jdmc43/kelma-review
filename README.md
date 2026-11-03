@@ -11,8 +11,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/bluelife8/kelma-review/releases"><img alt="Latest release" src="https://img.shields.io/github/v/release/bluelife8/kelma-review?style=flat-square"></a>
-  <a href="https://github.com/bluelife8/kelma-review/actions/workflows/release.yml"><img alt="Release builds" src="https://img.shields.io/github/actions/workflow/status/bluelife8/kelma-review/release.yml?style=flat-square&label=release"></a>
+  <a href="https://github.com/jdmc43/kelma-review/releases"><img alt="Latest release" src="https://img.shields.io/github/v/release/jdmc43/kelma-review?style=flat-square"></a>
+  <a href="https://github.com/jdmc43/kelma-review/actions/workflows/release.yml"><img alt="Release builds" src="https://img.shields.io/github/actions/workflow/status/jdmc43/kelma-review/release.yml?style=flat-square&label=release"></a>
   <a href="LICENSE"><img alt="Apache License 2.0" src="https://img.shields.io/badge/license-Apache--2.0-blue?style=flat-square"></a>
   <img alt="Kotlin Multiplatform" src="https://img.shields.io/badge/Kotlin-Multiplatform-7F52FF?style=flat-square&logo=kotlin&logoColor=white">
 </p>
@@ -20,16 +20,16 @@
 <p align="center">
   <a href="https://kelma.tech/downloads"><strong>Download Kelma Review</strong></a>
   ·
-  <a href="https://github.com/bluelife8/kelma-review/releases">Release notes</a>
+  <a href="https://github.com/jdmc43/kelma-review/releases">Release notes</a>
   ·
-  <a href="https://github.com/bluelife8/kelma-review/issues">Contribute</a>
+  <a href="https://github.com/jdmc43/kelma-review/issues">Contribute</a>
 </p>
 
-[Kelma Review](https://github.com/bluelife8/kelma-review) is a progressive, open source, community-driven spaced repitition flashcard application for Linux, Android, macOS, iOS, and Windows. It was developed to compete with [Anki](https://apps.ankiweb.net/) and to bring a serious, permissively licensed application to the ecosystem. Kelma Review is licensed under [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) and can be used in and with proprietary software.
+[Kelma Review](https://github.com/jdmc43/kelma-review) is a progressive, open source, community-driven spaced repitition flashcard application for Linux, Android, macOS, iOS, and Windows. It was developed to compete with [Anki](https://apps.ankiweb.net/) and to bring a serious, permissively licensed application to the ecosystem. Kelma Review is licensed under [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) and can be used in and with proprietary software.
 
 Kelma Review is sponsored by [Kelma Tech LLC](https://kelma.tech/), which also develops [Kelma Immersion](https://kelma.tech/), a science-based language learning platform that was originally intended to be integrated with Anki. Kelma Review development depends on volunteer work and funds from Kelma Immersion profits. Unlike Anki, Kelma Review is completely free to use on any platform. It was developed to be a single free and open source application with opensource licensing that is compatible with [Google Play](https://play.google.com/store) and the [Apple App Store](https://www.apple.com/app-store/).
 
-Kelma Review is designed to be able to use any sync server that uses the [KelmaSync](https://github.com/bluelife8/kelma-sync) protocol. KelmaSync is also fully free and opensource, unlike the [AnkiWeb](https://ankiweb.net/) protocol. It makes serious improvements over AnkiWeb, particularly when it comes to third party application support and rapid, change-based upload and download. The default sync server is the Kelma Immersion server which is free up to 5 GB, but anybody can run their own sync server and Kelma Review will always support collections that connect to difference sync servers. 
+Kelma Review is designed to be able to use any sync server that uses the [KelmaSync](https://github.com/jdmc43/kelma-sync) protocol. KelmaSync is also fully free and opensource, unlike the [AnkiWeb](https://ankiweb.net/) protocol. It makes serious improvements over AnkiWeb, particularly when it comes to third party application support and rapid, change-based upload and download. The default sync server is the Kelma Immersion server which is free up to 5 GB, but anybody can run their own sync server and Kelma Review will always support collections that connect to difference sync servers. 
 
 Kelma Review currently uses [FSRS-6](https://github.com/open-spaced-repetition/free-spaced-repetition-scheduler) as its default scheduling program. It also ships with a parameter optimizer. Kelma Tech LLC is committed to the development of improved spaced repititon algorithms, and the vision for Kelma Review is to be a first adopter and contributor to progress in this domain. FSRS-6 has been shown scientifically to have superior efficiency to Anki's default scheduling algorithm.
 

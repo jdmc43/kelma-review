@@ -35,10 +35,10 @@ import androidx.compose.ui.unit.sp
 internal const val KelmaReviewPrivacyUrl = "https://kelma.tech/review/privacy"
 internal const val KelmaReviewTermsUrl = "https://kelma.tech/review/terms"
 internal const val KelmaReviewSupportUrl = "https://kelma.tech/review/support"
-internal const val KelmaReviewSourceUrl = "https://github.com/bluelife8/kelma-review"
-internal const val KelmaReviewLicenseUrl = "https://github.com/bluelife8/kelma-review/blob/main/LICENSE"
+internal const val KelmaReviewSourceUrl = "https://github.com/jdmc43/kelma-review"
+internal const val KelmaReviewLicenseUrl = "https://github.com/jdmc43/kelma-review/blob/main/LICENSE"
 internal const val KelmaReviewNoticesUrl =
-    "https://github.com/bluelife8/kelma-review/blob/main/" +
+    "https://github.com/jdmc43/kelma-review/blob/main/" +
         "shared/src/commonMain/composeResources/files/legal/THIRD_PARTY_NOTICES.md"
 
 private enum class AccountConfirmation {

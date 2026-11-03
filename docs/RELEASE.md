@@ -216,7 +216,7 @@ required only for direct AltServer installation, not for producing the IPA.
 1. Run the verification, dependency, package, and hardware checks above. Commit
    all intended changes; never release from a dirty tree.
 2. Bump all platform defaults, commit, push `main`, then create and push a new
-   `vX.Y.Z` tag. The public `bluelife8/kelma-review` workflow builds APK, DMG,
+   `vX.Y.Z` tag. The public `jdmc43/kelma-review` workflow builds APK, DMG,
    IPA, MSI, DEB, and `SHA256SUMS.txt`.
 3. Wait for the workflow to succeed and confirm every expected release asset.
    Extract `Payload/*.app/Info.plist` from the released IPA and verify bundle ID,
