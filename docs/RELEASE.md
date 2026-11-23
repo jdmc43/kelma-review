@@ -242,6 +242,10 @@ required only for direct AltServer installation, not for producing the IPA.
 7. Verify production with a fresh request: source identifier, bundle ID,
    version/build, URL, size, SHA-256, IPA HTTP 200, nginx configuration, and the
    latest GitHub release. Cloudflare should not serve stale source metadata.
+8. Point `README.md`'s download badges and Download table at the new tag: the
+   `releases/download/vX.Y.Z/` asset links, the version in each file name, the
+   `SHA256SUMS.txt` link, and the version mentioned beside them. Open each link
+   and confirm it downloads.
 
 ## Known hardware gates
 

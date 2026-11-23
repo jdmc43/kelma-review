@@ -1,8 +1,8 @@
 # Kelma Review
 
 <p align="center">
-  <a href="https://kelma.tech/downloads">
-    <img src="desktopApp/src/main/resources/icon.png" width="160" alt="Kelma Review logo">
+  <a href="#download">
+    <img src="desktopApp/src/main/resources/icon.png" width="128" alt="Kelma Review logo">
   </a>
 </p>
 
@@ -11,18 +11,46 @@
 </p>
 
 <p align="center">
+  <a href="https://apps.apple.com/app/kelma-review/id6800817799"><img src="docs/images/badges/app-store.svg" height="48" alt="Download on the App Store"></a>
+  &nbsp;
+  <a href="https://play.google.com/store/apps/details?id=tech.kelma.app"><img src="docs/images/badges/google-play.png" height="48" alt="Get it on Google Play"></a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/jdmc43/kelma-review/releases/download/v1.0.21/KelmaReview-1.0.21.dmg"><img src="docs/images/badges/macos.png" height="48" alt="Download for macOS"></a>
+  &nbsp;
+  <a href="https://github.com/jdmc43/kelma-review/releases/download/v1.0.21/KelmaReview-1.0.21.msi"><img src="docs/images/badges/windows.png" height="48" alt="Download for Windows"></a>
+  &nbsp;
+  <a href="https://github.com/jdmc43/kelma-review/releases/download/v1.0.21/kelmareview_1.0.21_amd64.deb"><img src="docs/images/badges/linux.png" height="48" alt="Download for Linux"></a>
+</p>
+
+<p align="center">
+  <sub>
+    Desktop 1.0.21: macOS for Apple silicon (signed and notarized), Windows MSI, Linux DEB (x86-64)
+    <br>
+    <a href="#download">All downloads</a>
+    ·
+    <a href="https://github.com/jdmc43/kelma-review/releases">Release notes</a>
+    ·
+    <a href="https://github.com/jdmc43/kelma-review/issues">Contribute</a>
+  </sub>
+</p>
+
+<p align="center">
+  <img src="docs/images/screenshots/desktop-review.png" width="100%" alt="Kelma Review on macOS reviewing a Spanish card with a photo, example sentences, and FSRS answer intervals">
+</p>
+
+<p align="center">
+  <img src="docs/images/screenshots/phone-review.png" width="32%" alt="Kelma Review on iPhone: a flashcard with a photo, audio, and example sentences">
+  <img src="docs/images/screenshots/phone-fsrs.png" width="32%" alt="Kelma Review on iPhone: FSRS-6 answer buttons with next review intervals">
+  <img src="docs/images/screenshots/phone-scripts.png" width="32%" alt="Kelma Review on iPhone: an Arabic and Moroccan Darija card with right-to-left text">
+</p>
+
+<p align="center">
   <a href="https://github.com/jdmc43/kelma-review/releases"><img alt="Latest release" src="https://img.shields.io/github/v/release/jdmc43/kelma-review?style=flat-square"></a>
   <a href="https://github.com/jdmc43/kelma-review/actions/workflows/release.yml"><img alt="Release builds" src="https://img.shields.io/github/actions/workflow/status/jdmc43/kelma-review/release.yml?style=flat-square&label=release"></a>
   <a href="LICENSE"><img alt="Apache License 2.0" src="https://img.shields.io/badge/license-Apache--2.0-blue?style=flat-square"></a>
   <img alt="Kotlin Multiplatform" src="https://img.shields.io/badge/Kotlin-Multiplatform-7F52FF?style=flat-square&logo=kotlin&logoColor=white">
-</p>
-
-<p align="center">
-  <a href="https://kelma.tech/downloads"><strong>Download Kelma Review</strong></a>
-  ·
-  <a href="https://github.com/jdmc43/kelma-review/releases">Release notes</a>
-  ·
-  <a href="https://github.com/jdmc43/kelma-review/issues">Contribute</a>
 </p>
 
 [Kelma Review](https://github.com/jdmc43/kelma-review) is a progressive, open source, community-driven spaced repitition flashcard application for Linux, Android, macOS, iOS, and Windows. It was developed to compete with [Anki](https://apps.ankiweb.net/) and to bring a serious, permissively licensed application to the ecosystem. Kelma Review is licensed under [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) and can be used in and with proprietary software.
@@ -34,6 +62,31 @@ Kelma Review is designed to be able to use any sync server that uses the [KelmaS
 Kelma Review currently uses [FSRS-6](https://github.com/open-spaced-repetition/free-spaced-repetition-scheduler) as its default scheduling program. It also ships with a parameter optimizer. Kelma Tech LLC is committed to the development of improved spaced repititon algorithms, and the vision for Kelma Review is to be a first adopter and contributor to progress in this domain. FSRS-6 has been shown scientifically to have superior efficiency to Anki's default scheduling algorithm.
 
 Kelma Review is a completely clean-room implementation of spaced repitition, written in [Kotlin](https://kotlinlang.org/). It achieves greater efficiency than Anki on desktop, using less RAM and CPU threads. Syncing is much faster, the default scheduling system is more efficient, and the GUI has been modernized with more features out of the box. As a progressive application, Kelma Review seeks to be the [Fedora](https://fedoraproject.org/) to Anki's [Ubuntu](https://ubuntu.com/): Kelma Review's philosophy is embrace frontier features that push the boundaries of spaced repition.
+
+## Download
+
+| Platform | Get it | Notes |
+|---|---|---|
+| iPhone and iPad | [App Store](https://apps.apple.com/app/kelma-review/id6800817799) | Updates automatically. |
+| Android | [Google Play](https://play.google.com/store/apps/details?id=tech.kelma.app) · [APK](https://github.com/jdmc43/kelma-review/releases/download/v1.0.21/KelmaReview-1.0.21-Android.apk) | The APK is for direct install on ARM64 devices. |
+| macOS | [DMG](https://github.com/jdmc43/kelma-review/releases/download/v1.0.21/KelmaReview-1.0.21.dmg) | Apple silicon. Signed with Kelma Tech LLC's Developer ID and notarized by Apple. |
+| Windows | [MSI](https://github.com/jdmc43/kelma-review/releases/download/v1.0.21/KelmaReview-1.0.21.msi) | x64 installer. Not yet code-signed, so Windows SmartScreen may ask you to confirm. |
+| Linux | [DEB](https://github.com/jdmc43/kelma-review/releases/download/v1.0.21/kelmareview_1.0.21_amd64.deb) | x86-64, for Debian, Ubuntu, and their derivatives. |
+
+The desktop packages and the APK are Kelma Review 1.0.21. Verify them with [`SHA256SUMS.txt`](https://github.com/jdmc43/kelma-review/releases/download/v1.0.21/SHA256SUMS.txt). Each release also includes an unsigned IPA for sideloading with AltStore. Older versions and release notes are on the [releases page](https://github.com/jdmc43/kelma-review/releases).
+
+## Screenshots
+
+<p align="center">
+  <img src="docs/images/screenshots/desktop-decks.png" width="49%" alt="Kelma Review on macOS: the deck list with New, Learn, and Due counts">
+  <img src="docs/images/screenshots/desktop-browse.png" width="49%" alt="Kelma Review on macOS: Browse with a deck search, results table, and card preview">
+</p>
+
+<p align="center">
+  <img src="docs/images/screenshots/phone-decks.png" width="32%" alt="Kelma Review on iPhone: nested decks with New, Learn, and Due counts">
+  <img src="docs/images/screenshots/phone-browse.png" width="32%" alt="Kelma Review on iPhone: Browse with search and filters">
+  <img src="docs/images/screenshots/phone-import.png" width="32%" alt="Kelma Review on iPhone: importing an Anki .apkg package">
+</p>
 
 ## What Kelma Review modernizes
 
