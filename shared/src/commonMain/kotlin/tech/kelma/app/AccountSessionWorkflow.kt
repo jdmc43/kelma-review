@@ -6,6 +6,8 @@ import kotlinx.coroutines.withContext
 internal data class PendingAccountSignIn(
     val username: String,
     val auth: LoginResponse,
+    /** The KelmaSync server this account belongs to (normalized). */
+    val endpoint: String = DefaultKelmaSyncEndpoint,
 )
 
 internal data class InitializedAccountSession(
@@ -31,7 +33,7 @@ internal suspend fun initializeAccountSession(
     val savedAuth = StoredSyncAuth(
         token = pending.auth.token,
         clientId = pending.auth.clientId,
-        endpoint = DefaultKelmaSyncEndpoint,
+        endpoint = pending.endpoint,
         username = pending.username,
     )
     val saved = withContext(Dispatchers.Default) { store.load(recoverOptimizerJobs = true) }

@@ -922,6 +922,7 @@ internal fun AppContent(
                 onRemoveFromDevice = accountDeviceActions.removeFromDevice,
                 onDeleteKelmaAccount = accountDeviceActions.deleteKelmaAccount,
                 activeAccountUsername = accountDeviceActions.username,
+                activeAccountServer = accountDeviceActions.endpoint,
             )
         }
         CollectionInterchangeHost(

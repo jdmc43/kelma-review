@@ -35,7 +35,13 @@ fun App(externalPluginsEnabled: Boolean = true) {
     val databaseDriver = rememberDatabaseDriver(databaseName)
     val credentialVault = rememberCredentialVault()
     val mediaCache = rememberMediaCache(databaseName.substringBeforeLast('.'))
-    val syncClient = rememberClosable(mediaCache) { KelmaSyncClient(mediaCache = mediaCache) }
+    // The open account's server: every saved account syncs with its own one.
+    var syncEndpoint by remember {
+        mutableStateOf(accountRegistry.activeAccount()?.endpoint ?: DefaultKelmaSyncEndpoint)
+    }
+    val syncClient = rememberClosable(mediaCache, syncEndpoint) {
+        KelmaSyncClient(endpoint = syncEndpoint, mediaCache = mediaCache)
+    }
     val accountClient = rememberClosable { KelmaAccountClient() }
     val interchangePlatform = rememberCollectionInterchangePlatform()
     val interchangeService = remember(interchangePlatform.sqliteFiles) {
@@ -139,6 +145,7 @@ fun App(externalPluginsEnabled: Boolean = true) {
                 )
                 saved.auth?.let { auth ->
                     accountRegistry.registerCurrent(auth.endpoint, auth.username, databaseName)
+                    if (auth.endpoint.trimEnd('/') != syncEndpoint) syncEndpoint = auth.endpoint.trimEnd('/')
                     showSignIn = false
                     error = null
                     if (openingSavedAccount) {
@@ -622,12 +629,22 @@ fun App(externalPluginsEnabled: Boolean = true) {
     val accountAccess = accountAccessCallbacks(
         state = appState,
         accountRegistry = accountRegistry,
-        syncClient = syncClient,
+        login = { endpoint, username, password ->
+            val client = KelmaSyncClient(endpoint = endpoint)
+            try {
+                client.login(username, password)
+            } finally {
+                client.close()
+            }
+        },
         accountService = accountClient,
         scope = scope,
         setPendingSignIn = { pendingAccountSignIn = it },
         setOpeningSavedAccount = { openingSavedAccount = it },
-        setDatabaseName = { databaseName = it },
+        setDatabaseName = {
+            syncEndpoint = accountRegistry.activeAccount()?.endpoint ?: DefaultKelmaSyncEndpoint
+            databaseName = it
+        },
     )
     val resolveSyncConflict: (SyncUploadConflict, Boolean) -> Unit = { conflict, keepLocal ->
         scope.launch {

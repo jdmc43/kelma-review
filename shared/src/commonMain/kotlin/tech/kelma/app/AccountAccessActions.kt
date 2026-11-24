@@ -4,7 +4,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 internal data class AccountAccessCallbacks(
-    val signIn: (String, String) -> Unit,
+    val signIn: (username: String, password: String, endpoint: String) -> Unit,
     val registerAccount: (String, String) -> Unit,
     val requestPasswordReset: (String) -> Unit,
     val clearFeedback: () -> Unit,
@@ -16,32 +16,41 @@ internal data class AccountAccessCallbacks(
 internal fun accountAccessCallbacks(
     state: AppState,
     accountRegistry: LocalAccountRegistry,
-    syncClient: KelmaSyncService,
+    login: suspend (endpoint: String, username: String, password: String) -> LoginResponse,
     accountService: KelmaAccountService,
     scope: CoroutineScope,
     setPendingSignIn: (PendingAccountSignIn?) -> Unit,
     setOpeningSavedAccount: (Boolean) -> Unit,
     setDatabaseName: (String) -> Unit,
 ): AccountAccessCallbacks {
-    val signIn: (String, String) -> Unit = signIn@{ username, password ->
+    val signIn: (String, String, String) -> Unit = signIn@{ username, password, requestedEndpoint ->
         if (state.working.value || !state.restored.value) return@signIn
+        val endpoint = try {
+            SyncServerAddress.normalize(requestedEndpoint)
+        } catch (invalid: IllegalArgumentException) {
+            state.error.value = invalid.message
+            return@signIn
+        }
         state.working.value = true
         state.error.value = null
         state.accountAccessMessage.value = null
         state.syncMessage.value = null
         scope.launch {
             try {
-                val auth = syncClient.login(username, password)
-                val targetDatabase = accountRegistry.activate(DefaultKelmaSyncEndpoint, username)
+                // Each account belongs to the server it signed in to; the same
+                // username on another server is a separate local account.
+                val auth = login(endpoint, username, password)
+                val targetDatabase = accountRegistry.activate(endpoint, username)
                 state.clearDisplayedAccount()
                 state.token.value = auth.token
-                setPendingSignIn(PendingAccountSignIn(username, auth))
+                setPendingSignIn(PendingAccountSignIn(username, auth, endpoint))
                 state.showSignIn.value = false
                 state.destination.value = CollectionDestination.Sync
                 state.restored.value = false
                 setDatabaseName(targetDatabase)
             } catch (exception: Exception) {
-                state.error.value = exception.message ?: "Could not connect to KelmaSync"
+                state.error.value = exception.message
+                    ?: "Could not connect to ${SyncServerAddress.label(endpoint)}"
                 state.working.value = false
             }
         }
