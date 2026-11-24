@@ -51,6 +51,7 @@ internal fun AccountLegalControlsDialog(
     signedIn: Boolean,
     username: String?,
     working: Boolean,
+    server: String? = null,
     onChooseAccount: () -> Unit,
     onSwitchAccount: () -> Unit,
     onSignOut: () -> Unit,
@@ -81,6 +82,7 @@ internal fun AccountLegalControlsDialog(
         null -> AccountLegalOverview(
             signedIn = signedIn,
             username = username,
+            server = server,
             working = working,
             onChooseAccount = onChooseAccount,
             onSwitchAccount = onSwitchAccount,
@@ -97,6 +99,7 @@ internal fun AccountLegalControlsDialog(
 private fun AccountLegalOverview(
     signedIn: Boolean,
     username: String?,
+    server: String?,
     working: Boolean,
     onChooseAccount: () -> Unit,
     onSwitchAccount: () -> Unit,
@@ -119,10 +122,12 @@ private fun AccountLegalOverview(
                     .heightIn(max = 440.dp)
                     .verticalScroll(rememberScrollState()),
             ) {
+                val kelmaAccount = server == null || SyncServerAddress.isDefault(server)
+                val onServer = if (kelmaAccount) "" else " on ${SyncServerAddress.label(server.orEmpty())}"
                 Text(
                     text = when {
-                        username != null -> "Signed in as $username"
-                        signedIn -> "Signed in to KelmaSync"
+                        username != null -> "Signed in as $username$onServer"
+                        signedIn -> "Signed in to KelmaSync$onServer"
                         else -> "Using a local collection without an account"
                     },
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -176,7 +181,19 @@ private fun AccountLegalOverview(
                     fontSize = 13.sp,
                     lineHeight = 20.sp,
                 )
-                if (signedIn) {
+                if (signedIn && !kelmaAccount) {
+                    Spacer(Modifier.height(10.dp))
+                    Text(
+                        text = "This account is on ${SyncServerAddress.label(server.orEmpty())}, a self-hosted " +
+                            "KelmaSync server. Its cloud data and the account itself are managed by whoever " +
+                            "runs that server.",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 13.sp,
+                        lineHeight = 20.sp,
+                        modifier = Modifier.testTag("account-self-hosted"),
+                    )
+                }
+                if (signedIn && kelmaAccount) {
                     Spacer(Modifier.height(10.dp))
                     AccountAction(
                         title = "Delete Kelma account",

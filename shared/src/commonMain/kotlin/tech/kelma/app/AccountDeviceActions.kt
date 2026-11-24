@@ -7,6 +7,8 @@ import kotlinx.coroutines.withContext
 
 internal data class AccountDeviceActions(
     val username: String?,
+    /** The active account's KelmaSync server. */
+    val endpoint: String?,
     val signOut: () -> Unit,
     val removeFromDevice: () -> Unit,
     val deleteKelmaAccount: (String) -> Unit,
@@ -89,5 +91,11 @@ internal fun accountDeviceActions(
             }
         }
     }
-    return AccountDeviceActions(activeAccount?.username, signOut, removeFromDevice, deleteKelmaAccount)
+    return AccountDeviceActions(
+        activeAccount?.username,
+        activeAccount?.endpoint,
+        signOut,
+        removeFromDevice,
+        deleteKelmaAccount,
+    )
 }

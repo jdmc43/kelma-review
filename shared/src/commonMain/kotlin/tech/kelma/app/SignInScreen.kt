@@ -53,7 +53,7 @@ fun SignInScreen(
     signingIn: Boolean,
     error: String?,
     message: String? = null,
-    onSignIn: (username: String, password: String) -> Unit,
+    onSignIn: (username: String, password: String, endpoint: String) -> Unit,
     onRegister: (email: String, password: String) -> Unit = { _, _ -> },
     onRequestPasswordReset: (email: String) -> Unit = {},
     onClearFeedback: () -> Unit = {},
@@ -68,6 +68,7 @@ fun SignInScreen(
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var selectedAccount by remember(accounts) { mutableStateOf<LocalAccountChoice?>(null) }
+    val server = remember { SignInServerState() }
     val showMode: (AccountAccessMode) -> Unit = {
         onClearFeedback()
         mode = it
@@ -98,7 +99,7 @@ fun SignInScreen(
         }
         AccountAccessMode.SignIn -> Unit
     }
-    val submit = { onSignIn(username, password) }
+    val submit = { server.endpoint?.let { onSignIn(username, password, it) } ?: Unit }
     val selectAccount: (LocalAccountChoice) -> Unit = {
         selectedAccount = it
         username = it.username
@@ -107,7 +108,9 @@ fun SignInScreen(
     }
     val updateUsername: (String) -> Unit = {
         username = it
-        selectedAccount = accounts.firstOrNull { account -> account.username == it }
+        selectedAccount = accounts.firstOrNull { account ->
+            account.username == it && account.endpoint == server.endpoint
+        }
     }
 
     if (isDesktopApp) {
@@ -122,6 +125,7 @@ fun SignInScreen(
             onUsernameChange = updateUsername,
             onPasswordChange = { password = it },
             onSubmit = submit,
+            server = server,
             onCreateAccount = { showMode(AccountAccessMode.Register) },
             onForgotPassword = { showMode(AccountAccessMode.ResetPassword) },
             onBack = onBack,
@@ -138,6 +142,7 @@ fun SignInScreen(
             onUsernameChange = updateUsername,
             onPasswordChange = { password = it },
             onSubmit = submit,
+            server = server,
             onCreateAccount = { showMode(AccountAccessMode.Register) },
             onForgotPassword = { showMode(AccountAccessMode.ResetPassword) },
             onBack = onBack,
@@ -157,6 +162,7 @@ private fun DesktopSignInScreen(
     onUsernameChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
     onSubmit: () -> Unit,
+    server: SignInServerState,
     onCreateAccount: () -> Unit,
     onForgotPassword: () -> Unit,
     onBack: () -> Unit,
@@ -171,7 +177,11 @@ private fun DesktopSignInScreen(
                     shape = MaterialTheme.shapes.large,
                     border = BorderStroke(1.dp, KelmaDesktopColors.Border),
                 ) {
-                    Column(modifier = Modifier.padding(horizontal = 36.dp, vertical = 32.dp)) {
+                    Column(
+                        modifier = Modifier
+                            .verticalScroll(rememberScrollState())
+                            .padding(horizontal = 36.dp, vertical = 32.dp),
+                    ) {
                         Text(
                             text = if (accounts.isEmpty()) "Sign in to KelmaSync" else "KelmaSync accounts",
                             color = KelmaDesktopColors.TextPrimary,
@@ -200,6 +210,7 @@ private fun DesktopSignInScreen(
                             onUsernameChange,
                             onPasswordChange,
                             onSubmit,
+                            server,
                             onCreateAccount,
                             onForgotPassword,
                             onBack,
@@ -224,6 +235,7 @@ private fun MobileSignInScreen(
     onUsernameChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
     onSubmit: () -> Unit,
+    server: SignInServerState,
     onCreateAccount: () -> Unit,
     onForgotPassword: () -> Unit,
     onBack: () -> Unit,
@@ -284,6 +296,7 @@ private fun MobileSignInScreen(
                     onUsernameChange,
                     onPasswordChange,
                     onSubmit,
+                    server,
                     onCreateAccount,
                     onForgotPassword,
                     onBack,
@@ -339,7 +352,7 @@ private fun SavedAccountChooser(
                             fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
                         )
                         Text(
-                            text = account.endpoint,
+                            text = savedAccountServer(account.endpoint),
                             color = secondaryColor,
                             style = MaterialTheme.typography.bodySmall,
                         )
@@ -356,7 +369,7 @@ private fun SavedAccountChooser(
                             fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
                         )
                         Text(
-                            text = account.endpoint,
+                            text = savedAccountServer(account.endpoint),
                             color = secondaryColor,
                             fontSize = 13.sp,
                             lineHeight = 19.sp,
@@ -383,12 +396,14 @@ private fun SignInFields(
     onUsernameChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
     onSubmit: () -> Unit,
+    server: SignInServerState,
     onCreateAccount: () -> Unit,
     onForgotPassword: () -> Unit,
     onContinueWithoutAccount: () -> Unit,
     desktop: Boolean,
 ) {
-    val canSubmit = username.isNotBlank() && password.isNotEmpty() && !signingIn
+    val canSubmit = username.isNotBlank() && password.isNotEmpty() && !signingIn && server.endpoint != null
+    SignInServerChooser(server, signingIn, desktop)
     OutlinedTextField(
         value = username,
         onValueChange = onUsernameChange,
@@ -440,19 +455,23 @@ private fun SignInFields(
         color = if (desktop) KelmaDesktopColors.TextSecondary else KelmaColors.TextSecondary,
         style = MaterialTheme.typography.bodySmall,
     )
-    TextButton(
-        onClick = onCreateAccount,
-        modifier = Modifier.fillMaxWidth().testTag("create-kelma-account"),
-        enabled = !signingIn,
-    ) {
-        Text("Create a free Kelma account", fontWeight = FontWeight.Bold)
-    }
-    TextButton(
-        onClick = onForgotPassword,
-        modifier = Modifier.fillMaxWidth().testTag("forgot-password"),
-        enabled = !signingIn,
-    ) {
-        Text("Forgot password?")
+    if (server.isKelma) {
+        // Kelma accounts are created and recovered at kelma.tech; other servers
+        // manage their accounts themselves.
+        TextButton(
+            onClick = onCreateAccount,
+            modifier = Modifier.fillMaxWidth().testTag("create-kelma-account"),
+            enabled = !signingIn,
+        ) {
+            Text("Create a free Kelma account", fontWeight = FontWeight.Bold)
+        }
+        TextButton(
+            onClick = onForgotPassword,
+            modifier = Modifier.fillMaxWidth().testTag("forgot-password"),
+            enabled = !signingIn,
+        ) {
+            Text("Forgot password?")
+        }
     }
     OutlinedButton(
         onClick = onContinueWithoutAccount,

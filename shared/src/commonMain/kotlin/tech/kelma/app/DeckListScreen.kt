@@ -51,6 +51,7 @@ fun DeckListScreen(
     loading: Boolean = false,
     signedIn: Boolean,
     activeAccountUsername: String?,
+    activeAccountServer: String? = null,
     syncing: Boolean,
     syncMessage: String?,
     syncMessageIsError: Boolean,
@@ -162,6 +163,7 @@ fun DeckListScreen(
         AccountLegalControlsDialog(
             signedIn = signedIn,
             username = activeAccountUsername.takeIf { signedIn },
+            server = activeAccountServer.takeIf { signedIn },
             working = syncing,
             onChooseAccount = {
                 showAccountControls = false

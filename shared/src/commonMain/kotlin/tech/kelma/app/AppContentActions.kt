@@ -4,7 +4,7 @@ internal data class AppContentActions(
     val undoReview: suspend (String) -> ReviewCard?,
     val requestSync: () -> Unit,
     val redownloadCollection: () -> Unit,
-    val signIn: (String, String) -> Unit,
+    val signIn: (username: String, password: String, endpoint: String) -> Unit,
     val registerAccount: (String, String) -> Unit,
     val requestPasswordReset: (String) -> Unit,
     val clearAccountAccessFeedback: () -> Unit,
