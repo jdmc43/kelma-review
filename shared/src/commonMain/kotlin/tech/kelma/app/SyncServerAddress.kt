@@ -43,6 +43,18 @@ internal object SyncServerAddress {
     /** "Kelma" for Kelma's server, otherwise its host. */
     fun label(endpoint: String): String = if (isDefault(endpoint)) "Kelma" else host(endpoint)
 
+    /**
+     * Why this device cannot use [endpoint], or null. Phones and tablets only
+     * allow encrypted connections (iOS App Transport Security, Android's
+     * cleartext policy), so they need https:// even on a home network.
+     */
+    fun transportProblem(endpoint: String, desktop: Boolean): String? =
+        if (!desktop && endpoint.startsWith("http://", ignoreCase = true)) {
+            "On phones and tablets the server address must start with https://."
+        } else {
+            null
+        }
+
     /** Plain http:// to a server outside the local network. */
     fun isUnencryptedRemote(endpoint: String): Boolean {
         if (!endpoint.startsWith("http://", ignoreCase = true)) return false

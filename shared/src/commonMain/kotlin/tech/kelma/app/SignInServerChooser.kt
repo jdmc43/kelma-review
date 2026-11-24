@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.dp
 
 /** Which KelmaSync server a new sign-in goes to: Kelma's, or one entered by the user. */
 @Stable
-internal class SignInServerState {
+internal class SignInServerState(private val desktop: Boolean = isDesktopApp) {
     var custom by mutableStateOf(false)
     var input by mutableStateOf("")
 
@@ -34,13 +34,15 @@ internal class SignInServerState {
             DefaultKelmaSyncEndpoint
         } else {
             runCatching { SyncServerAddress.normalize(input) }.getOrNull()
+                ?.takeIf { SyncServerAddress.transportProblem(it, desktop) == null }
         }
 
     val error: String?
-        get() = if (custom && input.isNotBlank()) {
-            runCatching { SyncServerAddress.normalize(input) }.exceptionOrNull()?.message
-        } else {
-            null
+        get() {
+            if (!custom || input.isBlank()) return null
+            val normalized = runCatching { SyncServerAddress.normalize(input) }
+            return normalized.exceptionOrNull()?.message
+                ?: SyncServerAddress.transportProblem(normalized.getOrThrow(), desktop)
         }
 
     val isKelma: Boolean get() = endpoint?.let(SyncServerAddress::isDefault) ?: false
