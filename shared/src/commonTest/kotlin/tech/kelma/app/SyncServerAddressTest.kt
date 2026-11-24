@@ -42,6 +42,26 @@ class SyncServerAddressTest {
     }
 
     @Test
+    fun phonesNeedEncryptedServers() {
+        val phone = SignInServerState(desktop = false).apply {
+            custom = true
+            input = "http://192.168.1.20:8080"
+        }
+        assertEquals(null, phone.endpoint)
+        assertTrue(phone.error.orEmpty().contains("https://"))
+        phone.input = "sync.home.example"
+        assertEquals("https://sync.home.example", phone.endpoint)
+        assertEquals(null, phone.error)
+
+        val desktop = SignInServerState(desktop = true).apply {
+            custom = true
+            input = "http://192.168.1.20:8080"
+        }
+        assertEquals("http://192.168.1.20:8080", desktop.endpoint)
+        assertEquals(null, desktop.error)
+    }
+
+    @Test
     fun theSameUsernameOnTwoServersIsTwoAccounts() {
         val registry = LocalAccountRegistry(InMemoryRegistry())
         val kelma = registry.activate(DefaultKelmaSyncEndpoint, "maria@example.org")
