@@ -80,6 +80,13 @@ jobs:
             :desktopApp:packageDmg
           DMG="$(find desktopApp/build/compose/binaries/main/dmg -maxdepth 1 -name '*.dmg' -print -quit)"
           test -n "$DMG"
+          # Compose signs the app inside the image; the DMG itself needs its own
+          # Developer ID signature (with a secure timestamp) before notarization.
+          codesign --force --timestamp \
+            --sign "$KELMA_MAC_DEVELOPER_IDENTITY" \
+            --keychain "$KELMA_MAC_KEYCHAIN" \
+            "$DMG"
+          codesign --verify --verbose=2 "$DMG"
           xcrun notarytool submit "$DMG" --wait \
             --key "$NOTARY_KEY" \
             --key-id "$KELMA_ASC_API_KEY_ID" \
