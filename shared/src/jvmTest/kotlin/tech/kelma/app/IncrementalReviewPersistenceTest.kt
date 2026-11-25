@@ -280,7 +280,7 @@ class IncrementalReviewPersistenceTest {
     }
 
     @Test
-    fun synchronizedDailyCounterDefinesRemoteReviewCapacityConsumption() {
+    fun reviewHistoryCountsEvenWhenADailySnapshotIsSmaller() {
         val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
         KelmaDatabase.Schema.create(driver)
         val store = PersistentCollectionStore(KelmaDatabase(driver))
@@ -329,8 +329,53 @@ class IncrementalReviewPersistenceTest {
 
         val restored = store.loadLocalReviews(now + 2)
 
+        // The snapshot (one client's own counter) said 1; the shared history
+        // shows both cards answered as reviews today, which wins.
         assertEquals(3, restored.reviewedToday)
-        assertEquals(DeckStudyCounts(reviews = 1), restored.studiedTodayByDeck.getValue("Deck"))
+        assertEquals(DeckStudyCounts(reviews = 2), restored.studiedTodayByDeck.getValue("Deck"))
+        driver.close()
+    }
+
+    @Test
+    fun aLargerDailySnapshotStillRaisesTheCount() {
+        val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
+        KelmaDatabase.Schema.create(driver)
+        val store = PersistentCollectionStore(KelmaDatabase(driver))
+        val now = IncrementalReviewNow + 1_000L
+        val policy = AccountStudyDayPolicy(version = 1, timezoneId = "UTC", dayStartHour = 0)
+        val card = SyncCard(70, "remote", "Deck")
+        val history = listOf(
+            SyncReview(reviewId = now - 2 * MillisPerDay, sourceCardId = 70, noteGuid = "remote",
+                cardOrd = 0, deckName = "Deck", ease = 3, reviewKind = 0),
+            SyncReview(reviewId = now, sourceCardId = 70, noteGuid = "remote",
+                cardOrd = 0, deckName = "Deck", ease = 3, reviewKind = 1),
+        )
+        store.saveSignedInState(
+            StoredSyncAuth("token", "client", DefaultKelmaSyncEndpoint, "user"),
+            SyncedCollection(
+                notes = mapOf("remote" to SyncNote("remote", fields = listOf("front", "back"))),
+                cards = mapOf(70L to card),
+                reviews = history.associateBy(SyncReview::reviewId),
+                studyDays = mapOf(
+                    "day" to SyncStudyDay(
+                        day = studyDayAt(now, policy),
+                        deckName = "Deck",
+                        newStudied = 4,
+                        reviewStudied = 9,
+                    ),
+                ),
+                deckNames = setOf("Deck"),
+            ),
+            nowMillis = now,
+        )
+        store.observeCloudStudyDayPolicy(policy)
+
+        // A client that publishes counters without its review history (an older
+        // app) still uses up the day: history says 1 review, its snapshot 4 + 9.
+        assertEquals(
+            DeckStudyCounts(newCards = 4, reviews = 9),
+            store.loadLocalReviews(now + 1).studiedTodayByDeck.getValue("Deck"),
+        )
         driver.close()
     }
 

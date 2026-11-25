@@ -95,7 +95,6 @@ internal fun loadLocalReviewSnapshot(
         total.newCards += newStudied.toInt()
         total.reviews += reviewStudied.toInt()
     }.executeAsList()
-    synchronizedCounts.forEach { (deckName, synchronized) -> counts[deckName] = synchronized }
 
     val confirmedIds = queries.selectSyncReviewIds().executeAsList().toSet()
     val localEvents = queries.selectAllLocalReviewEvents {
@@ -114,16 +113,21 @@ internal fun loadLocalReviewSnapshot(
         )
     }.executeAsList()
     val locallyConsumedReviewKeys = mutableSetOf<String>()
+    // This device's own answers today: confirmed ones are already in the shared
+    // history; unconfirmed ones (not uploaded yet) are in no other count.
+    val ownConfirmed = mutableMapOf<String, MutableDeckStudyCounts>()
+    val ownUnconfirmed = mutableMapOf<String, MutableDeckStudyCounts>()
     localEvents.filter { it.reviewedAtMillis in todayWindow }.forEach { event ->
         val deckName = event.deckName.remapDownloadedDeckName(overrides) ?: return@forEach
         val isUnconfirmed = event.reviewId !in confirmedIds
         val cardKey = reviewLimitCardKey(event.noteGuid, event.cardOrd, event.cardId)
-        if (deckName in synchronizedCounts || isUnconfirmed) {
-            val deckCounts = counts.getOrPut(deckName, ::MutableDeckStudyCounts)
-            when {
-                event.wasNew -> deckCounts.newCards++
-                event.consumedReviewLimit && locallyConsumedReviewKeys.add(cardKey) -> deckCounts.reviews++
-            }
+        val deckCounts = (if (isUnconfirmed) ownUnconfirmed else ownConfirmed)
+            .getOrPut(deckName, ::MutableDeckStudyCounts)
+        when {
+            event.wasNew -> deckCounts.newCards++
+            event.consumedReviewLimit &&
+                !(isUnconfirmed && cardKey in reviewLimitConsumedCardKeys) &&
+                locallyConsumedReviewKeys.add(cardKey) -> deckCounts.reviews++
         }
         if (event.consumedReviewLimit) locallyConsumedReviewKeys += cardKey
         if (isUnconfirmed) {
@@ -134,6 +138,7 @@ internal fun loadLocalReviewSnapshot(
         }
     }
     reviewLimitConsumedCardKeys += locallyConsumedReviewKeys
+    combineStudiedToday(counts, synchronizedCounts, ownConfirmed, ownUnconfirmed)
     val localCardIds = queries.selectLocalCards { cardId, _, _, _, _ -> cardId }
         .executeAsList().toSet()
     val changedByDeck = mutableMapOf<String, MutableSet<Long>>()
@@ -228,3 +233,30 @@ private data class LocalCountedReview(
 private class MutableDeckStudyCounts(var newCards: Int = 0, var reviews: Int = 0)
 
 private const val AnkiReviewKindReview = 1
+
+/**
+ * Today's studied counts per deck. The shared review history covers every
+ * device that has synced, so it is the primary count. A synchronized daily
+ * snapshot comes from one client's own counters (for example an Anki that
+ * counted only its own answers), so it never replaces the history: together
+ * with this device's uploaded answers it can only raise the count. Answers not
+ * uploaded yet are in neither and are added on top.
+ */
+private fun combineStudiedToday(
+    history: MutableMap<String, MutableDeckStudyCounts>,
+    synchronized: Map<String, MutableDeckStudyCounts>,
+    ownConfirmed: Map<String, MutableDeckStudyCounts>,
+    ownUnconfirmed: Map<String, MutableDeckStudyCounts>,
+) {
+    synchronized.forEach { (deckName, snapshot) ->
+        val own = ownConfirmed[deckName]
+        val counts = history.getOrPut(deckName, ::MutableDeckStudyCounts)
+        counts.newCards = maxOf(counts.newCards, snapshot.newCards + (own?.newCards ?: 0))
+        counts.reviews = maxOf(counts.reviews, snapshot.reviews + (own?.reviews ?: 0))
+    }
+    ownUnconfirmed.forEach { (deckName, pending) ->
+        val counts = history.getOrPut(deckName, ::MutableDeckStudyCounts)
+        counts.newCards += pending.newCards
+        counts.reviews += pending.reviews
+    }
+}
