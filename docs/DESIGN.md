@@ -13,9 +13,7 @@ Candidate architecture for prototyping. No production commitment has been made.
 - Clean room Apache-2.0 application with no Anki/rslib code.
 - Kelma-native collection schema and KelmaSync v2.
 - FSRS as the built-in scheduler.
-- Powerful third-party Lua plugins.
-- Optional compiled JAR plugins on desktop.
-- Full plugin community build for desktop, Android, and sideloaded iOS.
+- Third-party JAR plugins on desktop (the mobile apps have no plugins).
 - Plugin-free iOS App Store build.
 - F-Droid-compatible Android build without proprietary dependencies.
 
@@ -45,7 +43,6 @@ kelma-review/
   plugin-api/
   plugin-host/
   ui/
-  native/lua/
   iosApp/
   docs/
 ```
@@ -71,7 +68,7 @@ database -> core repository interfaces
 - Collection services and transaction boundaries.
 - FSRS and queue policy.
 - KelmaSync request/response models.
-- Plugin API contracts and Lua-facing value models.
+- Plugin API contracts and JSON-compatible boundary value models.
 - Navigation state and most Compose screens.
 - SQLDelight schema and queries.
 
@@ -87,7 +84,7 @@ Use small `expect`/`actual` boundaries for:
 - Notifications and background work.
 - WebView/card rendering.
 - Audio playback and recording.
-- Lua runtime bindings.
+- The desktop JAR plugin runtime (`JarPluginRuntime`) and its public API (`tech.kelma.plugin`).
 - Desktop windows, menus, tray, and processes.
 
 ## Collection model
@@ -105,7 +102,7 @@ Media: logical filename, checksum, local state
 Tombstone: stable entity identity and deletion time
 ```
 
-Portable plugins are validated `.kelmaplugin` ZIP packages persisted in application-owned SQLite. Standard Lua 5.4.8 runs in one state per plugin through JNI on desktop/Android and C interop on community iOS. The host removes filesystem/process/debug standard libraries and dynamic loaders, replaces `require()` with package/dependency runtime paths, gates registered services by declared capability, and enforces allocator and instruction budgets. These controls are defense in depth for trusted third-party software, not an OS sandbox. The Options plugin manager confirms requested capabilities and provides enable/disable, reload, safe mode, attributed diagnostics, command inspection, and uninstall.
+Plugins are desktop `.jar` files with a `kelma-plugin.json` manifest, validated on install and persisted in application-owned SQLite. Each loads in its own class loader (parented to the public `tech.kelma.plugin` API), starts once, and registers commands, event observers, and renderers, gated by its declared capabilities. Plugins are trusted code with the app's access; there is no sandbox. The Options plugin manager confirms requested capabilities and provides enable/disable, reload, safe mode, attributed diagnostics, command inspection, and uninstall. Android and iOS have no plugins. See `PLUGIN_SYSTEM.md`.
 
 Review events are the durable synchronized scheduling facts. Due times, intervals, learning phases, FSRS memory state, and queue ordering are device-local derived projections and are never authoritative sync records. Daily answer totals remain derived from immutable events minus independently synchronized append-only review retractions, while synchronized per-deck study-day counters summarize how many New and Review cards consumed daily quota; learning and relearning repetitions do not consume Review quota. A card's independent `active`/`suspended` study state is synchronized user intent, not a scheduler phase. Source clients may include interval/factor/card-scheduling fields for Anki round-tripping, but Kelma treats them as opaque origin metadata except that an explicit Anki New-card `due` value is retained solely as its New gather position; it never seeds a phase, due time, or Review schedule.
 
@@ -143,20 +140,18 @@ Browse is a platform-specific card browser over the merged collection (downloade
 
 ## Card rendering
 
-The shared renderer evaluates downloaded notetype `qfmt`/`afmt` templates, field conditionals, reverse layouts, `FrontSide`, and cloze filters. Production review gives Android WebView, iOS WKWebView, or desktop JavaFX WebView/WebKit the complete bounded card viewport. Deck-list projection builds exact queue counts without rendering review-card bodies; only the selected deck hydrates its review queue. A worker-owned cache partitions projection-relevant card metadata by deck and retains each exact summary. Review deltas identify affected cards, notes, and decks directly; content and sync snapshots compare per-deck source keys, while unfamiliar review snapshots use an exact schedule/bury/daily-state diff. Only affected decks run the canonical queue builder, with due, learn-ahead, dynamic-sort, and study-day boundaries invalidating cached counts before they can become stale. A short idle refresh keeps the cache warm after edits and sync while another destination is visible. The reviewer retains one browser shell for the session and replaces its complete card body and stylesheet in place. Before reveal it displays the rendered `qfmt`; after reveal it installs the complete rendered `afmt` and scrolls to `#answer`, so `FrontSide` is neither appended nor duplicated. The document uses `<body class="card">`, embeds local images, bridges fixed-size sound controls to native audio, and owns vertical scrolling. An explicitly assigned Lua renderer may transform the complete question and answer HTML/CSS before media embedding. The nearest deck or parent-deck assignment overrides note-type assignments; bounded output is cached for unchanged active-queue cards, and any unavailable or failed renderer falls back to the original card without transferring WebView ownership. Mobile surfaces report ordinary tap position to Compose for reveal and Again/Good shortcuts; the desktop browser and its WebView are non-focusable so Compose review keys remain authoritative. Answer autoplay still excludes repeated `FrontSide` media, and advancing or backgrounding stops audio. Native players handle MP3 and other platform-supported formats, including pause and bounded five-second seeking. Record Own Voice requests platform microphone permission and keeps one temporary review-session clip for comparison without persisting or synchronizing it. Auto Advance is session-local and, while enabled, reveals after three seconds and submits Good five seconds later.
+The shared renderer evaluates downloaded notetype `qfmt`/`afmt` templates, field conditionals, reverse layouts, `FrontSide`, and cloze filters. Production review gives Android WebView, iOS WKWebView, or desktop JavaFX WebView/WebKit the complete bounded card viewport. Deck-list projection builds exact queue counts without rendering review-card bodies; only the selected deck hydrates its review queue. A worker-owned cache partitions projection-relevant card metadata by deck and retains each exact summary. Review deltas identify affected cards, notes, and decks directly; content and sync snapshots compare per-deck source keys, while unfamiliar review snapshots use an exact schedule/bury/daily-state diff. Only affected decks run the canonical queue builder, with due, learn-ahead, dynamic-sort, and study-day boundaries invalidating cached counts before they can become stale. A short idle refresh keeps the cache warm after edits and sync while another destination is visible. The reviewer retains one browser shell for the session and replaces its complete card body and stylesheet in place. Before reveal it displays the rendered `qfmt`; after reveal it installs the complete rendered `afmt` and scrolls to `#answer`, so `FrontSide` is neither appended nor duplicated. The document uses `<body class="card">`, embeds local images, bridges fixed-size sound controls to native audio, and owns vertical scrolling. An explicitly assigned plugin renderer may transform the complete question and answer HTML/CSS before media embedding. The nearest deck or parent-deck assignment overrides note-type assignments; bounded output is cached for unchanged active-queue cards, and any unavailable or failed renderer falls back to the original card without transferring WebView ownership. Mobile surfaces report ordinary tap position to Compose for reveal and Again/Good shortcuts; the desktop browser and its WebView are non-focusable so Compose review keys remain authoritative. Answer autoplay still excludes repeated `FrontSide` media, and advancing or backgrounding stops audio. Native players handle MP3 and other platform-supported formats, including pause and bounded five-second seeking. Record Own Voice requests platform microphone permission and keeps one temporary review-session clip for comparison without persisting or synchronizing it. Auto Advance is session-local and, while enabled, reveals after three seconds and submits Good five seconds later.
 
 ## UI
 
-Compose Multiplatform owns application chrome and built-in screens. The current plugin manager has platform-appropriate desktop/mobile shells and displays trust guidance, capabilities, dependencies, runtime status, startup time, registered commands/events/renderers, durable renderer assignments, and durable logs. A global searchable command palette opens with Cmd/Ctrl+K on desktop; mobile keeps review undo directly in the top bar and exposes plugin commands from Plugin Manager instead of opening a command-palette modal. Built-in navigation and sync actions share the same registry as Lua commands, while plugins receive only content-free screen/deck context. Plugins currently register commands, lifecycle/review observers, and pure HTML/CSS renderer transforms. Rich portable host UI trees plus canvas and WebView escape hatches remain a later additive API. Direct Compose UI from JAR plugins is desktop-only and version-sensitive.
+Compose Multiplatform owns application chrome and built-in screens. The current plugin manager has platform-appropriate desktop/mobile shells and displays trust guidance, capabilities, dependencies, runtime status, startup time, registered commands/events/renderers, durable renderer assignments, and durable logs. A global searchable command palette opens with Cmd/Ctrl+K on desktop; mobile keeps review undo directly in the top bar and exposes plugin commands from Plugin Manager instead of opening a command-palette modal. Built-in navigation and sync actions share the same registry as plugin commands, while plugins receive only content-free screen/deck context. Plugins currently register commands, lifecycle/review observers, and pure HTML/CSS renderer transforms. Richer host UI (panels, Compose views) remains a later additive API and would be version-sensitive.
 
 ## Builds
 
 ```text
-Desktop community: Lua enabled; optional JAR plugins
-Android community/F-Droid: Lua enabled
-Android Play: Lua enabled under the existing restricted interpreted-code policy
-iOS App Store: external Lua plugins excluded at compile time
-iOS community: Lua enabled, separate bundle ID, user-signed
+Desktop: JAR plugins
+Android (Play and community): no plugins
+iOS (App Store and community): no plugins
 ```
 
 Suggested IDs:
@@ -180,8 +175,6 @@ Community:        tech.kelma.app.community
 
 1. Compose Multiplatform iOS maturity for Kelma's actual UI.
 2. Reliable desktop HTML/card rendering.
-3. JNI plus Kotlin/Native Lua integration complexity.
-4. Plugin API becoming an unstable reflection of internal models.
-5. Direct Compose JAR plugins coupling to Kotlin/Compose versions.
-6. Mobile lifecycle restrictions for long-running Lua plugins.
-7. iOS policy for the separately distributed community build.
+3. Plugin API becoming an unstable reflection of internal models.
+4. Direct Compose JAR plugins coupling to Kotlin/Compose versions.
+5. iOS policy for the separately distributed community build.

@@ -20,6 +20,8 @@ private data class LocalAccountRegistryState(
     val initialized: Boolean = false,
     val activeKey: String? = null,
     val accounts: List<LocalAccountRecord> = emptyList(),
+    // This device's colour scheme (KelmaColorScheme.key); it outlives accounts.
+    val colorScheme: String? = null,
 )
 
 internal interface LocalAccountRegistryStorage {
@@ -93,6 +95,14 @@ internal class LocalAccountRegistry(
     }
 
     internal fun accounts(): List<LocalAccountRecord> = state.accounts
+
+    fun colorScheme(): KelmaColorScheme = KelmaColorScheme.fromKey(state.colorScheme)
+
+    fun setColorScheme(scheme: KelmaColorScheme) {
+        if (state.colorScheme == scheme.key) return
+        state = state.copy(colorScheme = scheme.key)
+        persist()
+    }
 
     private fun persist() {
         storage.write(json.encodeToString(state))

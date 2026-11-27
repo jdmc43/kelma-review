@@ -34,7 +34,7 @@ data class PluginCommand(
     val execute: suspend (PluginCommandInvocation) -> PluginValue,
 )
 
-/** Deterministic registry shared by built-in and Lua commands. */
+/** Deterministic registry shared by built-in and plugin commands. */
 class PluginCommandRegistry {
     private val commands = linkedMapOf<String, PluginCommand>()
 

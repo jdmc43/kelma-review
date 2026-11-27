@@ -27,7 +27,10 @@ data class PluginDependency(
     val optional: Boolean = false,
 )
 
-/** Stable, serializable manifest stored beside a portable Lua 5.4 plugin package. */
+/**
+ * A desktop plugin's manifest (`kelma-plugin.json` at the root of its JAR): `runtime` is `jvm`
+ * and `entrypoint` the class implementing `tech.kelma.plugin.KelmaPlugin`.
+ */
 @Serializable
 data class PluginManifest(
     val id: String,
@@ -35,17 +38,25 @@ data class PluginManifest(
     val version: String,
     val apiVersion: Int,
     val entrypoint: String,
-    val runtime: String = "lua54",
+    val runtime: String = PluginRuntimeJvm,
     val capabilities: Set<PluginCapability> = emptySet(),
     val dependencies: List<PluginDependency> = emptyList(),
 ) {
+    /** A new install: a desktop JAR plugin for this API generation. */
+    fun validatedForInstall(): PluginManifest {
+        validated()
+        require(apiVersion == KelmaPluginApiVersion) { "Plugin API $apiVersion is not supported" }
+        require(runtime == PluginRuntimeJvm) { "Kelma Review runs desktop JAR plugins (runtime \"jvm\")" }
+        require(JvmClassName.matches(entrypoint)) { "Plugin entrypoint must be a class name, such as org.example.HelloPlugin" }
+        return this
+    }
+
+    /** Its structure (also for an installation kept from before, such as a Lua plugin). */
     fun validated(): PluginManifest {
         require(PluginId.matches(id)) { "Plugin id must use reverse-domain components" }
         require(name.isNotBlank() && name.length <= 100) { "Plugin name is invalid" }
         SemanticVersion.parse(version)
-        require(apiVersion == KelmaPluginApiVersion) { "Plugin API $apiVersion is not supported" }
-        require(runtime == "lua54") { "Only the portable Lua 5.4 runtime is supported" }
-        require(entrypoint.endsWith(".lua") && isSafePluginPath(entrypoint)) { "Plugin entrypoint is invalid" }
+        require(runtime.isNotBlank() && entrypoint.isNotBlank() && entrypoint.length <= 240) { "Plugin entrypoint is invalid" }
         require(dependencies.map(PluginDependency::id).distinct().size == dependencies.size) {
             "Plugin dependencies must be unique"
         }
@@ -57,7 +68,7 @@ data class PluginManifest(
     }
 }
 
-/** Persisted installation metadata; plugin source remains in application-owned package storage. */
+/** Persisted installation metadata; the plugin's JAR remains in application-owned package storage. */
 data class InstalledPlugin(
     val manifest: PluginManifest,
     val enabled: Boolean,
@@ -97,6 +108,7 @@ internal data class SemanticVersion(val major: Int, val minor: Int, val patch: I
 }
 
 private val PluginId = Regex("[a-z0-9]+(?:[.-][a-z0-9]+)+")
+private val JvmClassName = Regex("[A-Za-z_][A-Za-z0-9_]*(?:\\.[A-Za-z_][A-Za-z0-9_]*)+(?:\\$[A-Za-z_][A-Za-z0-9_]*)*")
 private val SemanticVersionPattern = Regex("(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)")
 internal fun isSafePluginPath(value: String): Boolean =
     value.isNotBlank() && value.length <= 240 &&

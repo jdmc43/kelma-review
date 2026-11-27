@@ -18,7 +18,7 @@ internal fun accountDeviceActions(
     accountRegistry: LocalAccountRegistry,
     accountService: KelmaAccountService,
     store: PersistentCollectionStore,
-    luaPluginHost: LuaPluginHost,
+    pluginHost: PluginHost,
     scope: CoroutineScope,
     isWorking: () -> Boolean,
     isRestored: () -> Boolean,
@@ -53,11 +53,11 @@ internal fun accountDeviceActions(
         scope.launch {
             try {
                 withContext(Dispatchers.Default) {
-                    luaPluginHost.close()
+                    pluginHost.close()
                     store.clearAll()
                 }
                 accountRegistry.remove(account.endpoint, account.username)
-                setPluginHostState(luaPluginHost.state())
+                setPluginHostState(pluginHost.state())
                 setWorking(false)
                 leaveAccount()
             } catch (exception: Exception) {
@@ -78,11 +78,11 @@ internal fun accountDeviceActions(
             try {
                 accountService.deleteAccount(account.username, password)
                 withContext(Dispatchers.Default) {
-                    luaPluginHost.close()
+                    pluginHost.close()
                     store.clearAll()
                 }
                 accountRegistry.remove(account.endpoint, account.username)
-                setPluginHostState(luaPluginHost.state())
+                setPluginHostState(pluginHost.state())
                 setWorking(false)
                 leaveAccount()
             } catch (exception: Exception) {

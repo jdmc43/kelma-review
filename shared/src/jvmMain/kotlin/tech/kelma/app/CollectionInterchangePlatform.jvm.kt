@@ -28,7 +28,7 @@ internal class JvmCollectionDocumentIO : CollectionDocumentIO {
 
     override suspend fun openPlugin(): InterchangeDocument? = openDocument(
         title = "Install Plugin",
-        extensions = setOf("kelmaplugin"),
+        extensions = setOf("jar"),
         maximumBytes = MaximumPluginPackageBytes,
     )
 

@@ -32,3 +32,16 @@ private class JvmLocalAccountRegistryStorage(directory: File) : LocalAccountRegi
         }
     }
 }
+
+/**
+ * Desktop startup: applies this device's stored colour scheme before any window or card
+ * viewer exists, and returns its background for the native window layer.
+ */
+fun applyStoredDesktopColorScheme(): java.awt.Color {
+    val scheme = runCatching {
+        LocalAccountRegistry(JvmLocalAccountRegistryStorage(desktopDataDirectory())).colorScheme()
+    }.getOrDefault(KelmaColorScheme.Default)
+    KelmaColorSchemeState.current = scheme
+    val background = desktopPalette(scheme).background
+    return java.awt.Color(background.red, background.green, background.blue)
+}

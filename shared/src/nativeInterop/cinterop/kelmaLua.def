@@ -1,3 +1,0 @@
-headers = kelma_lua_host.h
-headerFilter = kelma_lua_host.h
-package = tech.kelma.lua

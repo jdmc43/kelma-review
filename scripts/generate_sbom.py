@@ -66,15 +66,6 @@ def main() -> int:
                     "licenses": [{"license": {"id": license_for_group(group)}}],
                 }
 
-    components["lua.org", "lua", "5.4.8"] = {
-        "type": "library",
-        "group": "lua.org",
-        "name": "lua",
-        "version": "5.4.8",
-        "purl": "pkg:generic/lua@5.4.8",
-        "licenses": [{"license": {"id": "MIT"}}],
-    }
-
     document = {
         "bomFormat": "CycloneDX",
         "specVersion": "1.5",

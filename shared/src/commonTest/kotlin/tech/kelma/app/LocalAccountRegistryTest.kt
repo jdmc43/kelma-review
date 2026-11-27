@@ -7,6 +7,20 @@ import kotlin.test.assertNull
 
 class LocalAccountRegistryTest {
     @Test
+    fun theColorSchemeIsKeptOnThisDeviceAcrossAccounts() {
+        val storage = MemoryAccountRegistryStorage()
+        val registry = LocalAccountRegistry(storage)
+        assertEquals(KelmaColorScheme.Classic, registry.colorScheme())
+
+        registry.setColorScheme(KelmaColorScheme.Olive)
+        registry.activate("https://sync2.kelma.tech", "alice")
+        registry.deactivate()
+        registry.remove("https://sync2.kelma.tech", "alice")
+
+        assertEquals(KelmaColorScheme.Olive, LocalAccountRegistry(storage).colorScheme())
+    }
+
+    @Test
     fun accountsKeepStableCollectionDatabasesAcrossSignOutAndSwitching() {
         val storage = MemoryAccountRegistryStorage()
         val registry = LocalAccountRegistry(storage)

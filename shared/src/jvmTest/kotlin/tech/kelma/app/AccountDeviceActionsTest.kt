@@ -21,7 +21,7 @@ class AccountDeviceActionsTest {
             accountRegistry = fixture.registry,
             accountService = RecordingAccountService(),
             store = fixture.store,
-            luaPluginHost = fixture.pluginHost,
+            pluginHost = fixture.pluginHost,
             scope = this,
             isWorking = { working },
             isRestored = { true },
@@ -53,7 +53,7 @@ class AccountDeviceActionsTest {
             accountRegistry = fixture.registry,
             accountService = RecordingAccountService(),
             store = fixture.store,
-            luaPluginHost = fixture.pluginHost,
+            pluginHost = fixture.pluginHost,
             scope = this,
             isWorking = { working },
             isRestored = { true },
@@ -88,7 +88,7 @@ class AccountDeviceActionsTest {
             accountRegistry = fixture.registry,
             accountService = accountService,
             store = fixture.store,
-            luaPluginHost = fixture.pluginHost,
+            pluginHost = fixture.pluginHost,
             scope = this,
             isWorking = { working },
             isRestored = { true },
@@ -131,7 +131,7 @@ private data class AccountActionFixture(
     val registry: LocalAccountRegistry,
     val mediaCache: AccountActionMediaCache,
     val store: PersistentCollectionStore,
-    val pluginHost: LuaPluginHost,
+    val pluginHost: PluginHost,
 ) {
     fun close() {
         pluginHost.close()
@@ -165,13 +165,13 @@ private fun accountFixture(): AccountActionFixture {
             name = "Account Action Test",
             version = "1.0.0",
             apiVersion = KelmaPluginApiVersion,
-            entrypoint = "plugin/test.lua",
+            entrypoint = "org.example.HelloPlugin",
         ),
     )
     val registry = LocalAccountRegistry(AccountActionRegistryStorage()).apply {
         activate(DefaultKelmaSyncEndpoint, "person@example.com")
     }
-    val pluginHost = store.createLuaPluginHost(
+    val pluginHost = store.createPluginHost(
         PluginCommandRegistry(),
         PluginEventRegistry(),
         PluginRendererRegistry(),

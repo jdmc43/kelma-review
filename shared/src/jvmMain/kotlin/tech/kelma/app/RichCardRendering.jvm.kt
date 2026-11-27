@@ -57,6 +57,8 @@ internal actual fun PlatformHtmlCardFace(
         )
         return
     }
+    // The card canvas follows the colour scheme in use (read here: switching recomposes).
+    val surface = DesktopCardSurface(KelmaDesktopColors.Background, KelmaDesktopColors.TextPrimary)
     SwingPanel(
         factory = {
             val panel = retainedDesktopBrowserPanel ?: DesktopBrowserCardPanel().also {
@@ -66,25 +68,48 @@ internal actual fun PlatformHtmlCardFace(
             panel.prepareForMount()
             panel
         },
-        update = { panel -> panel.update(html, updateScript, onPlayAudio, onCardTap) },
-        background = DesktopSurfaceCompose,
+        update = { panel ->
+            panel.applySurface(surface)
+            panel.update(html, updateScript, onPlayAudio, onCardTap)
+        },
+        background = surface.background,
         modifier = modifier,
     )
 }
 
+/** The card canvas's colours: its background (behind transparent card HTML) and text. */
+internal data class DesktopCardSurface(val background: ComposeColor, val text: ComposeColor) {
+    val awt: AwtColor get() = AwtColor(background.red, background.green, background.blue)
+    val fx: Color get() = Color.color(background.red.toDouble(), background.green.toDouble(), background.blue.toDouble())
+    val css: String get() = background.cssHex()
+    val textCss: String get() = text.cssHex()
+    val webViewStyle: String get() = "-fx-background-color: $css; -fx-page-fill: $css;"
+    val userStyleSheet: String
+        get() = "data:text/css;base64," + Base64.getEncoder().encodeToString(
+            "html,body{background-color:$css!important;color:$textCss!important;}".encodeToByteArray(),
+        )
+
+    companion object {
+        fun current() = DesktopCardSurface(KelmaDesktopColors.Background, KelmaDesktopColors.TextPrimary)
+    }
+}
+
 private class DesktopBrowserCardPanel : JLayeredPane() {
     private val callbacks = AtomicReference(CardCallbacks())
+    @Volatile private var surface = DesktopCardSurface.current()
+    private var browserView: WebView? = null
+    private var browserRoot: StackPane? = null
     private val initialShellReady = CountDownLatch(1)
     private val generation = AtomicInteger()
     private val fxPanel = JFXPanel().apply {
         isOpaque = true
-        background = DesktopSurfaceAwt
+        background = surface.awt
         isFocusable = false
         focusTraversalKeysEnabled = false
     }
     private val loadingPanel = JPanel().apply {
         isOpaque = true
-        background = DesktopSurfaceAwt
+        background = surface.awt
         isFocusable = false
     }
     private var webEngine: WebEngine? = null
@@ -96,7 +121,7 @@ private class DesktopBrowserCardPanel : JLayeredPane() {
 
     init {
         isOpaque = true
-        background = DesktopSurfaceAwt
+        background = surface.awt
         isFocusable = false
         focusTraversalKeysEnabled = false
         add(fxPanel, JLayeredPane.DEFAULT_LAYER)
@@ -107,11 +132,12 @@ private class DesktopBrowserCardPanel : JLayeredPane() {
             val browser = WebView().apply {
                 isContextMenuEnabled = false
                 isFocusTraversable = false
-                style = "-fx-background-color: #0F100A; -fx-page-fill: #0F100A;"
+                style = surface.webViewStyle
             }
+            browserView = browser
             val engine = browser.engine.apply {
                 isJavaScriptEnabled = true
-                userStyleSheetLocation = DesktopUserStyleSheet
+                userStyleSheetLocation = surface.userStyleSheet
                 loadWorker.stateProperty().addListener { _, _, state ->
                     when (state) {
                         Worker.State.SUCCEEDED -> {
@@ -142,10 +168,27 @@ private class DesktopBrowserCardPanel : JLayeredPane() {
             }
             webEngine = engine
             val root = StackPane(browser).apply {
-                style = "-fx-background-color: #0F100A;"
+                style = "-fx-background-color: ${surface.css};"
             }
-            fxPanel.scene = Scene(root).apply { fill = DesktopSurfaceFx }
-            engine.loadUtf8Html(DesktopShellHtml)
+            browserRoot = root
+            fxPanel.scene = Scene(root).apply { fill = surface.fx }
+            engine.loadUtf8Html(desktopShellHtml(surface))
+        }
+    }
+
+    /** Recolours the canvas (Swing, JavaFX, the page) when the colour scheme changed. */
+    fun applySurface(next: DesktopCardSurface) {
+        if (next == surface) return
+        surface = next
+        background = next.awt
+        fxPanel.background = next.awt
+        loadingPanel.background = next.awt
+        repaint()
+        Platform.runLater {
+            browserView?.style = next.webViewStyle
+            browserRoot?.style = "-fx-background-color: ${next.css};"
+            fxPanel.scene?.fill = next.fx
+            webEngine?.userStyleSheetLocation = next.userStyleSheet
         }
     }
 
@@ -219,7 +262,7 @@ private class DesktopBrowserCardPanel : JLayeredPane() {
         activeLoadGeneration = 0
         generation.incrementAndGet()
         SwingUtilities.invokeLater { showLoadingCard() }
-        Platform.runLater { engine.loadUtf8Html(DesktopShellHtml) }
+        Platform.runLater { engine.loadUtf8Html(desktopShellHtml(surface)) }
     }
 
     private fun showLoadingCard() {
@@ -283,17 +326,16 @@ private fun WebEngine.loadUtf8Html(html: String) {
 private fun isAllowedInternalLocation(location: String?): Boolean =
     location.isNullOrBlank() || location == "about:blank" || location.startsWith("data:text/html")
 
-private val DesktopSurfaceCompose = ComposeColor(0xFF0F100A)
-private val DesktopSurfaceAwt = AwtColor(15, 16, 10)
-private val DesktopSurfaceFx = Color.rgb(15, 16, 10)
-private const val DesktopUserStyleSheet =
-    "data:text/css;base64,aHRtbCxib2R5e2JhY2tncm91bmQtY29sb3I6IzBGMTAwQSFpbXBvcnRhbnQ7Y29sb3I6I0Y0RjFFNyFpbXBvcnRhbnQ7fQ=="
-private const val DesktopShellHtml = """<!doctype html>
+private fun desktopShellHtml(surface: DesktopCardSurface): String = DesktopShellHtmlTemplate
+    .replace("{BG}", surface.css)
+    .replace("{FG}", surface.textCss)
+
+private const val DesktopShellHtmlTemplate = """<!doctype html>
 <html><head>
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'">
-<style id="kelma-card-style">html,body{margin:0;min-height:100%;background:#0F100A;color:#F4F1E7}</style>
-</head><body class="card" style="margin:0;background:#0F100A!important;color:#F4F1E7!important">
+<style id="kelma-card-style">html,body{margin:0;min-height:100%;background:{BG};color:{FG}}</style>
+</head><body class="card" style="margin:0;background:{BG}!important;color:{FG}!important">
 <script>document.addEventListener('click',function(e){var b=e.target.closest('[data-kelma-audio]');if(b){e.preventDefault();e.stopPropagation();var n=b.getAttribute('data-kelma-audio');if(window.kelmaHost)window.kelmaHost.playAudio(n);return;}var a=e.target.closest('a');if(a){e.preventDefault();return;}if(e.target.closest('button,input,textarea,select,[contenteditable=true]'))return;var x=Math.max(0,Math.min(1,e.clientX/Math.max(1,window.innerWidth)));if(window.kelmaHost)window.kelmaHost.cardTap(x);});</script>
 </body></html>"""
 private const val BrowserRevealDelayMillis = 50

@@ -273,6 +273,7 @@ private fun DeckOptionsEditor(
             verticalAlignment = Alignment.Top,
         ) {
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                OptionsSection("Appearance") { ColorSchemeOption(desktop = true) }
                 OptionsSection("Daily limits") {
                     NumberOption("New cards/day", newLimit, { newLimit = it }, "options-new-limit")
                     NumberOption("Maximum reviews/day", reviewLimit, { reviewLimit = it })

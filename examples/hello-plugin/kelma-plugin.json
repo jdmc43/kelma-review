@@ -1,0 +1,10 @@
+{
+  "id": "org.example.hello",
+  "name": "Hello",
+  "version": "1.0.0",
+  "apiVersion": 1,
+  "runtime": "jvm",
+  "entrypoint": "org.example.hello.HelloPlugin",
+  "capabilities": ["Commands", "Events", "Ui"],
+  "dependencies": []
+}

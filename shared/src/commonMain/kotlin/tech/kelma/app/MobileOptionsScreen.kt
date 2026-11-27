@@ -271,6 +271,7 @@ private fun MobileDeckOptionsEditor(
             Text(text, color = if (messageIsError) KelmaColors.Bad else KelmaColors.Good,
                 fontSize = 14.sp, lineHeight = 20.sp)
         }
+        MobileOptionSection("Appearance") { ColorSchemeOption(desktop = false) }
         MobileOptionSection("Account study day") {
             MobileStudyDayPolicyControls(
                 policy = studyDayPolicy,

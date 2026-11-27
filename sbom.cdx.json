@@ -3026,20 +3026,6 @@
       "version": "3.3.3"
     },
     {
-      "group": "lua.org",
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT"
-          }
-        }
-      ],
-      "name": "lua",
-      "purl": "pkg:generic/lua@5.4.8",
-      "type": "library",
-      "version": "5.4.8"
-    },
-    {
       "group": "org.jetbrains",
       "licenses": [
         {

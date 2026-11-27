@@ -19,13 +19,10 @@ git diff --exit-code -- sbom.cdx.json
 ```
 
 A release review must inspect lock/SBOM changes and update
-`THIRD_PARTY_NOTICES.md` before approval. The dependency-policy check also
-verifies the pinned Lua 5.4.8 source inventory against
-`native/lua/SHA256SUMS`; changing vendored source requires an explicit checksum
-and upstream-provenance review.
+`THIRD_PARTY_NOTICES.md` before approval.
 
-Release packages embed exact copies of the Apache license, Kelma notice,
-third-party notices, and vendored Lua license from
+Release packages embed exact copies of the Apache license, Kelma notice, and
+third-party notices from
 `shared/src/commonMain/composeResources/files/legal/`. Keep those copies in
 sync and verify each packaged artifact with
 `scripts/check_packaged_legal_notices.py`.
@@ -51,16 +48,14 @@ KELMA_REQUIRE_DESKTOP_VAULT_ACCEPTANCE=true \
   --tests tech.kelma.app.DesktopCredentialVaultAcceptanceTest
 ```
 
-`PluginLuaRuntimeTest` and `PluginLuaIOSTest` execute the embedded native Lua
-host, including capability, memory, and instruction enforcement. The Android
-APK build compiles and packages `libkelma_lua.so` for every supported ABI; a
-community-release smoke test must also install the example plugin, run its
-command from the palette, assign its renderer to a deck, and review both sides
-of a card on an Android device or emulator.
+`PluginHostTest` loads real JAR plugins (dependency order, safe mode, capability
+enforcement, failure attribution, renderers, JSON boundary values, kept Lua
+installations). A desktop release smoke test must also install the example
+plugin (`examples/hello-plugin`), run its command from the palette, assign its
+renderer to a deck, and review both sides of a card.
 
-Windows PasswordVault, Linux Secret Service, and the host-specific desktop Lua
-library must run on their native release builders before publishing those
-installers.
+Windows PasswordVault and Linux Secret Service must run on their native release
+builders before publishing those installers.
 
 ## Desktop JVM arguments
 
@@ -113,9 +108,8 @@ symbol tables for every packaged ABI. A local build without those variables is
 unsigned and exists only for policy and package verification.
 
 The iOS App Store path uses the shared `iosApp-AppStore` scheme and `AppStore`
-configuration. That configuration requests `-PkelmaAppStoreBuild=true`, omits
-the iOS Lua cinterop and static runtime, compiles out plugin startup, and removes
-plugin entry points. Archive with Apple-managed distribution signing:
+configuration. That configuration requests `-PkelmaAppStoreBuild=true` (kept for
+compatibility; no iOS build has plugins any more) and removes plugin entry points. Archive with Apple-managed distribution signing:
 
 ```bash
 xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp-AppStore \

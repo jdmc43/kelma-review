@@ -6,11 +6,29 @@ The application deliberately has separate desktop and mobile presentations. Shar
 
 The plain green star is the general Kelma company mark. Product icons add one clear object to that star: Kelma Immersion uses an open book, while Kelma Review uses a single review card. Kelma Review packages and launchers must use the star-and-card icon on desktop, Android, and iOS; they must not use the plain company star, the Immersion book, or platform-template artwork.
 
+## Color schemes
+
+Kelma Review has two color schemes, chosen under Options › Appearance (applied at once and kept on the device, across accounts): **Classic**, the default, a neutral dark grey with Anki-style blue/red/green counts and light-grey primary actions; and **Kelma olive**, the original near-black olive with gold accents described by the token tables below. Layout, shapes, and typography are the same in both; only colors change (including card text, links, quote rules, and the audio control in rendered cards).
+
+| Classic desktop token | Color | Classic mobile token | Color |
+|---|---|---|---|
+| Background | `#2C2C2C` | Background | `#2C2C2C` |
+| Toolbar | `#363636` | Surface | `#333333` |
+| Panel | `#303030` | Surface elevated | `#3A3A3A` |
+| Hover row | `#393939` | Surface high | `#444444` |
+| Border | `#404040` | Surface border | `#4D4D4D` |
+| Text primary | `#FCFCFC` | Text primary | `#FCFCFC` |
+| Text secondary | `#C9C9C9` | Text secondary | `#BDBDBD` |
+| Text muted | `#7C7C7C` | Text muted | `#8A8A8A` |
+| KelmaSync accent | `#189747` | Primary action | `#E4E4E4` |
+| Primary action | `#E4E4E4` | Good / Bad | `#22C55E` / `#F87171` |
+| New / Learning / Due | `#93C5FD` / `#F87171` / `#22C55E` | New card | `#93C5FD` |
+
 ## Kelma Review on mobile
 
-Android and iOS retain the current Kelma Review mobile look: near-black olive canvases, layered warm surfaces, gold accents, off-white text, rounded controls, and compact top navigation. This remains true on tablets and in landscape; screen width alone must not switch a mobile device into desktop chrome.
+Android and iOS keep their own mobile presentation (in Kelma olive: near-black olive canvases, layered warm surfaces, gold accents, off-white text; in Classic, the neutral greys above), with rounded controls and compact top navigation. This remains true on tablets and in landscape; screen width alone must not switch a mobile device into desktop chrome.
 
-| Token | Color |
+| Kelma olive mobile token | Color |
 |---|---|
 | Background | `#0F100A` |
 | Background alternate | `#141610` |
@@ -33,7 +51,7 @@ Mobile uses a native five-item bottom navigation bar for Decks, Browse, Add, Opt
 The JVM desktop application follows the supplied Kelma Review desktop references rather than scaling up mobile UI:
 
 - A near-black olive canvas with a centered, bordered Decks/Add/Browse/Options/Stats/Sync pill. Top-level items are text-only; settings icons remain on deck rows. Sync opens a detailed persistent activity tab with a visible Sync now button; the deck screen's bottom utility row also exposes a sync icon, Sync action, and Ctrl/Cmd+S hint, and the shortcut runs sync without navigating.
-- A narrow rounded deck panel with checkbox marks, bright count columns, hover rows, and a gear affordance.
+- A narrow rounded deck panel with checkbox marks, bright count columns, hover rows, and a gear affordance. It reads like Anki's deck list: regular-weight 15 sp deck names and counts, 32 dp rows, title-case Deck/New/Learn/Due headers, and narrow (58 dp) count columns so full deck names fit.
 - KelmaSync card/media totals centered above the deck panel.
 - A distinct deck-overview screen with counts, a gold Study Now action, and bottom utility controls.
 - The deck list's Create Deck utility opens a focused naming dialog; it does not duplicate the toolbar's Add action.
@@ -45,7 +63,7 @@ The JVM desktop application follows the supplied Kelma Review desktop references
 - Add uses a purpose-built wide note editor: a Type and Deck row, a full formatting toolbar, per-field pin and preview toggles, tag chips, and a Help/Add/History/Close footer with a visible keyboard shortcut. It matches Anki's editor capabilities without copying its legacy dialog styling.
 - Browse uses a three-part workspace: a narrow filter sidebar, a sortable results table with a search bar, and a wider card detail panel with preview, metadata, and actions. Edit lives at the top of the detail panel and changes the preview surface into an inline source editor; it is not a popup. Save and Cancel share the `EDIT NOTE` row above the bordered field surface. The Browse toolbar pill shows the active state.
 
-| Desktop token | Color |
+| Kelma olive desktop token | Color |
 |---|---|
 | Background | `#0F100B` |
 | Toolbar | `#1B1A12` |
