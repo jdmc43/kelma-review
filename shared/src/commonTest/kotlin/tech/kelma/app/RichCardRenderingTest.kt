@@ -45,7 +45,8 @@ class RichCardRenderingTest {
         assertContains(document, "<body class=\"card\"")
         assertContains(document, "<!--kelma-card-body-start-->")
         assertContains(document, "class=\"kelma-audio-play\"")
-        assertContains(document, "border-left:11px solid #0F100A")
+        // The play mark takes the colour scheme's canvas colour (Classic by default).
+        assertContains(document, "border-left:11px solid ${KelmaColors.Background.cssHex()}")
         assertContains(document, "Missing audio: missing.mp3")
     }
 

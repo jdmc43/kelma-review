@@ -13,7 +13,7 @@ internal data class PluginCardRenderBatch(
 )
 
 internal suspend fun renderAssignedReviewCards(
-    host: LuaPluginHost,
+    host: PluginHost,
     registry: PluginRendererRegistry,
     assignments: PluginRendererAssignmentState,
     collection: SyncedCollection,
@@ -49,7 +49,7 @@ internal suspend fun renderAssignedReviewCards(
     return PluginCardRenderBatch(rendered, failure)
 }
 
-internal suspend fun LuaPluginHost.renderReviewCard(
+internal suspend fun PluginHost.renderReviewCard(
     rendererId: String,
     card: ReviewCard,
 ): ReviewCard {

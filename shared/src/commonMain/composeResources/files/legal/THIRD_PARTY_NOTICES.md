@@ -5,7 +5,6 @@ including the following principal components. Distribution builds must retain
 the complete license texts supplied by their dependency artifacts.
 
 - **kelma-fsrs-v6** — Apache License 2.0.
-- **Lua 5.4.8** — MIT License; vendored from Lua.org for the portable plugin runtime. The complete license is retained at `native/lua/LICENSE`.
 - **Kotlin and kotlinx libraries** — Apache License 2.0.
 - **Compose Multiplatform and AndroidX** — Apache License 2.0.
 - **Ktor** — Apache License 2.0.

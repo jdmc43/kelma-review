@@ -25,9 +25,16 @@ class PluginFoundationTest {
         assertFailsWith<IllegalArgumentException> {
             manifest("invalid", "1.0.0").validated()
         }
+        // A new install is a desktop JAR plugin whose entrypoint is a class name.
+        assertEquals("org.example.HelloPlugin", manifest("tech.kelma.jar", "1.0.0").validatedForInstall().entrypoint)
         assertFailsWith<IllegalArgumentException> {
-            manifest("tech.kelma.path", "1.0.0").copy(entrypoint = "plugin/é.lua").validated()
+            manifest("tech.kelma.path", "1.0.0").copy(entrypoint = "plugin/init.lua").validatedForInstall()
         }
+        assertFailsWith<IllegalArgumentException> {
+            manifest("tech.kelma.lua", "1.0.0").copy(runtime = "lua54").validatedForInstall()
+        }
+        // An installation kept from before (a Lua plugin) still reads, so it can be shown and removed.
+        assertEquals("lua54", manifest("tech.kelma.old", "1.0.0").copy(runtime = "lua54", entrypoint = "plugin/init.lua").validated().runtime)
     }
 
     @Test
@@ -87,7 +94,7 @@ class PluginFoundationTest {
     }
 
     private fun manifest(id: String, version: String, dependencies: List<PluginDependency> = emptyList()) =
-        PluginManifest(id, id, version, KelmaPluginApiVersion, "plugin/init.lua", dependencies = dependencies)
+        PluginManifest(id, id, version, KelmaPluginApiVersion, "org.example.HelloPlugin", dependencies = dependencies)
 
     private fun installed(manifest: PluginManifest) =
         InstalledPlugin(manifest.validated(), true, PluginStatus.Installed, null, 1L, 1L)

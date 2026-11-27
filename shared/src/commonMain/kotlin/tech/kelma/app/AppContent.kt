@@ -43,7 +43,7 @@ internal fun AppContent(
     savedAccounts: List<LocalAccountChoice>,
     interchangeDocuments: CollectionDocumentIO,
     interchangeService: CollectionInterchangeService,
-    luaPluginHost: LuaPluginHost,
+    pluginHost: PluginHost,
     pluginCommands: PluginCommandRegistry,
     pluginRenderers: PluginRendererRegistry,
     externalPluginsEnabled: Boolean,
@@ -112,7 +112,7 @@ internal fun AppContent(
     var showCommandPalette by remember { mutableStateOf(false) }
     var runningCommandId by remember { mutableStateOf<String?>(null) }
     var commandMessage by remember { mutableStateOf<String?>(null) }
-    val completedReviewEvents = remember(luaPluginHost) { Channel<Rating>(Channel.UNLIMITED) }
+    val completedReviewEvents = remember(pluginHost) { Channel<Rating>(Channel.UNLIMITED) }
     DisposableEffect(completedReviewEvents) {
         onDispose { completedReviewEvents.close() }
     }
@@ -121,14 +121,14 @@ internal fun AppContent(
             if (externalPluginsEnabled) {
                 try {
                     withContext(Dispatchers.Default) {
-                        luaPluginHost.publish(
+                        pluginHost.publish(
                             PluginEvent(
                                 "review.completed",
                                 mapOf("rating" to PluginValue.StringValue(rating.name)),
                             ),
                         )
                     }
-                    pluginHostState = luaPluginHost.state()
+                    pluginHostState = pluginHost.state()
                 } catch (pluginFailure: Exception) {
                     error = "Review saved; plugin event failed: ${pluginFailure.message ?: "unknown error"}"
                 }
@@ -234,7 +234,7 @@ internal fun AppContent(
                 commandMessage = failure.message ?: "Command failed"
                 pluginMessage = commandMessage
             } finally {
-                pluginHostState = luaPluginHost.state()
+                pluginHostState = pluginHost.state()
                 runningCommandId = null
             }
         }
@@ -244,7 +244,7 @@ internal fun AppContent(
         accountRegistry = accountRegistry,
         accountService = accountService,
         store = store,
-        luaPluginHost = luaPluginHost,
+        pluginHost = pluginHost,
         scope = scope,
         isWorking = { working },
         isRestored = { restored },
@@ -432,7 +432,7 @@ internal fun AppContent(
                                 val document = interchangeDocuments.openPlugin()
                                 if (document != null) {
                                     pendingPluginInstall = withContext(Dispatchers.Default) {
-                                        luaPluginHost.prepareInstall(document)
+                                        pluginHost.prepareInstall(document)
                                     }
                                 }
                             } catch (failure: Exception) {
@@ -447,16 +447,16 @@ internal fun AppContent(
                 onConfirmInstall = {
                     pendingPluginInstall?.let { pluginPackage ->
                         pendingPluginInstall = null
-                        runPluginOperation { luaPluginHost.install(pluginPackage) }
+                        runPluginOperation { pluginHost.install(pluginPackage) }
                     }
                 },
                 onDismissInstall = { pendingPluginInstall = null },
-                onReload = { runPluginOperation(luaPluginHost::reload) },
-                onSafeMode = { enabled -> runPluginOperation { luaPluginHost.setSafeMode(enabled) } },
+                onReload = { runPluginOperation(pluginHost::reload) },
+                onSafeMode = { enabled -> runPluginOperation { pluginHost.setSafeMode(enabled) } },
                 onEnabled = { pluginId, enabled ->
-                    runPluginOperation { luaPluginHost.setEnabled(pluginId, enabled) }
+                    runPluginOperation { pluginHost.setEnabled(pluginId, enabled) }
                 },
-                onUninstall = { pluginId -> runPluginOperation { luaPluginHost.uninstall(pluginId) } },
+                onUninstall = { pluginId -> runPluginOperation { pluginHost.uninstall(pluginId) } },
                 onRunCommand = ::runCommand,
                 onAssignRenderer = { rendererScope, targetId, rendererId ->
                     updateRendererAssignment(rendererScope, targetId, rendererId)
@@ -465,7 +465,7 @@ internal fun AppContent(
                     updateRendererAssignment(rendererScope, targetId, null)
                 },
                 onLoadLogs = { pluginId ->
-                    withContext(Dispatchers.Default) { luaPluginHost.logs(pluginId) }
+                    withContext(Dispatchers.Default) { pluginHost.logs(pluginId) }
                 },
             )
             destination == CollectionDestination.Options && isDesktopApp -> DesktopOptionsScreen(

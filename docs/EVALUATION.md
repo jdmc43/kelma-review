@@ -2,6 +2,8 @@
 
 Status: **selected**, started and decided 2026-07-25.
 
+> Update (2026-11): the embedded Lua plugin runtime evaluated below was later removed. Kelma Review now loads desktop JAR plugins only (`PLUGIN_SYSTEM.md`); the mobile apps have no plugins. The Lua notes are kept as the evaluation's record.
+
 ## Baseline completed
 
 - Generated from the official Kotlin Multiplatform wizard.

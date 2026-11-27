@@ -77,10 +77,9 @@ def check_source(check_xcode: bool) -> None:
         fail("Xcode AppStore build configuration is missing")
     if "-PkelmaAppStoreBuild=true" not in project:
         fail("Xcode does not request the plugin-free Kotlin framework")
-    if "if (!appStoreBuild.get())" not in shared_build:
-        fail("App Store builds do not exclude the iOS Lua cinterop")
-    if 'kotlin.exclude("**/PluginLuaRuntime.ios.kt")' not in shared_build:
-        fail("App Store builds do not exclude the community iOS Lua runtime")
+    # Plugins are desktop JARs: no build may compile an embedded plugin runtime for iOS.
+    if "kelmaLua" in shared_build or "native/lua" in shared_build:
+        fail("The shared build still compiles an embedded Lua plugin runtime")
     if "externalPluginsEnabled: !BuildChannel.isAppStore" not in content_view:
         fail("The App Store app does not disable external plugin behavior")
     for external_account_url in (
@@ -182,22 +181,16 @@ def check_artifact(path: Path, kind: str) -> None:
         if "base/manifest/AndroidManifest.xml" not in names:
             fail("Android App Bundle is missing the base manifest")
         required_abis = {"arm64-v8a", "armeabi-v7a", "x86", "x86_64"}
+        # Every ABI ships the app's native libraries (zstd for collection packages).
         packaged_abis = {
             name.split("/")[2]
             for name in names
-            if name.startswith("base/lib/") and name.endswith("/libkelma_lua.so")
+            if name.startswith("base/lib/") and name.endswith("/libzstd-kmp.so")
         }
         if packaged_abis != required_abis:
             fail(f"Android App Bundle ABIs are incomplete: {sorted(packaged_abis)}")
-        symbol_abis = {
-            name.split("/")[-2]
-            for name in names
-            if name.startswith("BUNDLE-METADATA/com.android.tools.build.debugsymbols/")
-            and name.endswith("/libkelma_lua.so.sym")
-        }
-        if symbol_abis != required_abis:
-            fail(f"Android native debug symbols are incomplete: {sorted(symbol_abis)}")
-
+        if any("libkelma_lua" in name for name in names):
+            fail("Android App Bundle still contains the Lua plugin runtime")
 
 def main() -> None:
     parser = argparse.ArgumentParser()

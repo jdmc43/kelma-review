@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Fail on unreviewed groups, forbidden coordinates, or non-allowlisted licenses."""
 
-import hashlib
 import json
 from pathlib import Path
 import sys
@@ -56,9 +55,6 @@ def main() -> int:
         "NOTICE",
         "THIRD_PARTY_NOTICES.md",
         "sbom.cdx.json",
-        "native/lua/LICENSE",
-        "native/lua/UPSTREAM.md",
-        "native/lua/SHA256SUMS",
     ):
         if not (ROOT / required).is_file():
             failures.append(f"missing {required}")
@@ -67,32 +63,12 @@ def main() -> int:
         bundled_legal_root / "LICENSE.txt": ROOT / "LICENSE",
         bundled_legal_root / "NOTICE.txt": ROOT / "NOTICE",
         bundled_legal_root / "THIRD_PARTY_NOTICES.md": ROOT / "THIRD_PARTY_NOTICES.md",
-        bundled_legal_root / "LUA_LICENSE.txt": ROOT / "native/lua/LICENSE",
     }
     for bundled, source in bundled_notices.items():
         if not bundled.is_file():
             failures.append(f"missing bundled legal notice {bundled.relative_to(ROOT)}")
         elif bundled.read_bytes() != source.read_bytes():
             failures.append(f"bundled legal notice differs from {source.relative_to(ROOT)}")
-    lua_root = ROOT / "native/lua"
-    checksum_file = lua_root / "SHA256SUMS"
-    if checksum_file.is_file():
-        listed_sources: set[str] = set()
-        for line in checksum_file.read_text().splitlines():
-            expected, relative = line.split(maxsplit=1)
-            listed_sources.add(relative)
-            source = lua_root / relative
-            if not source.is_file():
-                failures.append(f"missing vendored Lua source {relative}")
-            elif hashlib.sha256(source.read_bytes()).hexdigest() != expected:
-                failures.append(f"vendored Lua source checksum changed: {relative}")
-        actual_sources = {
-            str(path.relative_to(lua_root))
-            for path in (lua_root / "src").iterdir()
-            if path.is_file()
-        }
-        if listed_sources != actual_sources:
-            failures.append("vendored Lua source inventory does not match SHA256SUMS")
     sbom_path = ROOT / "sbom.cdx.json"
     if sbom_path.is_file():
         sbom = json.loads(sbom_path.read_text())
@@ -111,13 +87,6 @@ def main() -> int:
             if not identities or not identities.issubset(APPROVED_LICENSES):
                 coordinate = f"{component.get('group')}:{component.get('name')}:{component.get('version')}"
                 failures.append(f"SBOM component has unapproved or unknown license: {coordinate}")
-        if not any(
-            component.get("group") == "lua.org"
-            and component.get("name") == "lua"
-            and component.get("version") == "5.4.8"
-            for component in sbom_components
-        ):
-            failures.append("SBOM is missing vendored Lua 5.4.8")
     if failures:
         print("\n".join(failures), file=sys.stderr)
         return 1

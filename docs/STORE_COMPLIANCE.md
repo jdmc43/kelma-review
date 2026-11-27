@@ -30,13 +30,10 @@ submission artifacts.
 
 ### External plugin runtime
 
-- [x] Disable external `.kelmaplugin` installation and execution in the iOS App Store build.
-- [x] Remove Plugin Manager and plugin-install entry points from the iOS App Store build.
-- [x] Ensure the App Store build cannot load previously imported plugin packages.
-- [x] Exclude the external Lua runtime and cinterop from the App Store artifact.
-- [x] Keep plugin support available in community/AltStore builds.
-- [x] Retain restricted interpreted Lua plugins in the Play build and document the policy decision.
-- [x] Document and test the store/community feature split.
+- [x] Plugins are desktop JARs only: no Android or iOS build (store or community) contains a plugin
+  runtime, Plugin Manager, or plugin-install entry points. The embedded Lua runtime was removed.
+- [x] Ensure mobile builds cannot load previously imported plugin packages.
+- [x] Document and test that mobile builds have no plugins.
 
 ### Kelma Review privacy policy
 
@@ -77,7 +74,7 @@ submission artifacts.
 - [x] Add `PrivacyInfo.xcprivacy` to the iOS app target.
 - [x] Declare tracking accurately as disabled.
 - [x] Declare `NSUserDefaults` required-reason API access with app-specific reason `CA92.1`.
-- [ ] Audit the final archive for other required-reason APIs introduced by Compose, SQLDelight, Ktor, native Lua, or other dependencies.
+- [ ] Audit the final archive for other required-reason APIs introduced by Compose, SQLDelight, Ktor, or other dependencies.
 - [ ] Ensure dependency privacy manifests are included where required.
 - [ ] Keep App Store Connect privacy labels consistent with the manifest's account, content, and product-interaction declarations and the published privacy policy.
 - [ ] Complete Apple's encryption/export-compliance questionnaire.

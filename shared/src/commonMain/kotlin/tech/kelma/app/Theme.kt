@@ -1,57 +1,61 @@
 package tech.kelma.app
 
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+// The colours of the scheme in use (KelmaColorSchemeState): reading them in a composable
+// recomposes it when the scheme changes.
 object KelmaColors {
-    val Background = Color(0xFF0F100A)
-    val BackgroundAlt = Color(0xFF141610)
-    val Surface = Color(0xFF1B1D16)
-    val SurfaceElevated = Color(0xFF24271D)
-    val SurfaceHigh = Color(0xFF2D3024)
-    val SurfaceBorder = Color(0xFF3A3D31)
-    val Hairline = Color(0xFF2A2C22)
-    val Gold = Color(0xFFC9AC6B)
-    val GoldSoft = Color(0xFFDCC48F)
-    val GoldBright = Color(0xFFECD49A)
-    val TextPrimary = Color(0xFFF4F1E7)
-    val TextSecondary = Color(0xFFADAEA1)
-    val TextMuted = Color(0xFF7B7D70)
-    val Good = Color(0xFF84B07D)
-    val Bad = Color(0xFFD38975)
-    val NewCard = Color(0xFF7FB2C6)
-    val Young = Color(0xFF9CC593)
-    val Hard = Color(0xFFB8995F)
-    val Easy = Color(0xFF6F9FB0)
+    val Background: Color get() = mobilePalette().background
+    val BackgroundAlt: Color get() = mobilePalette().backgroundAlt
+    val Surface: Color get() = mobilePalette().surface
+    val SurfaceElevated: Color get() = mobilePalette().surfaceElevated
+    val SurfaceHigh: Color get() = mobilePalette().surfaceHigh
+    val SurfaceBorder: Color get() = mobilePalette().surfaceBorder
+    val Hairline: Color get() = mobilePalette().hairline
+    val Gold: Color get() = mobilePalette().gold
+    val GoldSoft: Color get() = mobilePalette().goldSoft
+    val GoldBright: Color get() = mobilePalette().goldBright
+    val TextPrimary: Color get() = mobilePalette().textPrimary
+    val TextSecondary: Color get() = mobilePalette().textSecondary
+    val TextMuted: Color get() = mobilePalette().textMuted
+    val Good: Color get() = mobilePalette().good
+    val Bad: Color get() = mobilePalette().bad
+    val NewCard: Color get() = mobilePalette().newCard
+    val Young: Color get() = mobilePalette().young
+    val Hard: Color get() = mobilePalette().hard
+    val Easy: Color get() = mobilePalette().easy
 }
 
 object KelmaDesktopColors {
-    val Background = Color(0xFF0F100B)
-    val Toolbar = Color(0xFF1B1A12)
-    val Surface = Color(0xFF1C1B13)
-    val SurfaceHigh = Color(0xFF393629)
-    val Border = Color(0xFF403821)
-    val TextPrimary = Color(0xFFF4F1E7)
-    val TextSecondary = Color(0xFFC7C2B4)
-    val TextMuted = Color(0xFF958B70)
-    val Accent = Color(0xFF08A64B)
-    val Gold = Color(0xFFE8CF91)
-    val New = Color(0xFF86BEF4)
-    val Learn = Color(0xFFFF6B73)
-    val Due = Color(0xFF18C45A)
-    val UtilityButton = Color(0xFF737373)
+    val Background: Color get() = desktopPalette().background
+    val Toolbar: Color get() = desktopPalette().toolbar
+    val Surface: Color get() = desktopPalette().surface
+    val SurfaceHigh: Color get() = desktopPalette().surfaceHigh
+    val Border: Color get() = desktopPalette().border
+    val TextPrimary: Color get() = desktopPalette().textPrimary
+    val TextSecondary: Color get() = desktopPalette().textSecondary
+    val TextMuted: Color get() = desktopPalette().textMuted
+    val Accent: Color get() = desktopPalette().accent
+    val Gold: Color get() = desktopPalette().gold
+    val New: Color get() = desktopPalette().new
+    val Learn: Color get() = desktopPalette().learn
+    val Due: Color get() = desktopPalette().due
+    val UtilityButton: Color get() = desktopPalette().utilityButton
 }
 
-private val MobileColorScheme = darkColorScheme(
+private fun mobileColorScheme(): ColorScheme = darkColorScheme(
     primary = KelmaColors.Gold,
     onPrimary = KelmaColors.Background,
     primaryContainer = KelmaColors.SurfaceElevated,
@@ -78,7 +82,7 @@ private val MobileColorScheme = darkColorScheme(
     onErrorContainer = KelmaColors.Bad,
 )
 
-private val DesktopColorScheme = darkColorScheme(
+private fun desktopColorScheme(): ColorScheme = darkColorScheme(
     primary = KelmaDesktopColors.Gold,
     onPrimary = KelmaDesktopColors.Background,
     primaryContainer = KelmaDesktopColors.SurfaceHigh,
@@ -135,7 +139,9 @@ private val DesktopTypography = Typography(
 @Composable
 fun KelmaTheme(content: @Composable () -> Unit) {
     MaterialTheme(
-        colorScheme = if (isDesktopApp) DesktopColorScheme else MobileColorScheme,
+        colorScheme = remember(KelmaColorSchemeState.current) {
+            if (isDesktopApp) desktopColorScheme() else mobileColorScheme()
+        },
         shapes = if (isDesktopApp) DesktopShapes else MobileShapes,
         typography = if (isDesktopApp) DesktopTypography else MobileTypography,
         content = content,
