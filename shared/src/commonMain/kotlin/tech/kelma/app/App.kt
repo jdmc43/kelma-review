@@ -22,13 +22,20 @@ private fun disabledPluginRuntimeFactory(
     capabilities: Set<PluginCapability>,
     files: Map<String, ByteArray>,
     entrypoint: String,
-    limits: PluginRuntimeLimits,
-): PlatformLuaRuntime = error("External plugins are unavailable in this build")
+): PluginRuntime = error("Plugins are unavailable in this build")
 
 @Composable
 fun App(externalPluginsEnabled: Boolean = true) {
+    // Plugins are desktop JARs: the mobile apps have none.
+    val pluginsEnabled = externalPluginsEnabled && isDesktopApp
     val accountRegistryStorage = rememberLocalAccountRegistryStorage()
     val accountRegistry = remember(accountRegistryStorage) { LocalAccountRegistry(accountRegistryStorage) }
+    // This device's colour scheme: applied at start, kept when changed in Options.
+    DisposableEffect(accountRegistry) {
+        KelmaColorSchemeState.current = accountRegistry.colorScheme()
+        KelmaColorSchemeState.save = accountRegistry::setColorScheme
+        onDispose { KelmaColorSchemeState.save = null }
+    }
     var databaseName by remember { mutableStateOf(accountRegistry.activeDatabaseName()) }
     var pendingAccountSignIn by remember { mutableStateOf<PendingAccountSignIn?>(null) }
     var openingSavedAccount by remember { mutableStateOf(false) }
@@ -54,21 +61,17 @@ fun App(externalPluginsEnabled: Boolean = true) {
             mediaCache = mediaCache,
         )
     }
-    val pluginCommands = remember(externalPluginsEnabled) {
-        PluginCommandRegistry().apply { registerKelmaCommands(externalPluginsEnabled) }
+    val pluginCommands = remember(pluginsEnabled) {
+        PluginCommandRegistry().apply { registerKelmaCommands(pluginsEnabled) }
     }
     val pluginEvents = remember { PluginEventRegistry() }
     val pluginRenderers = remember { PluginRendererRegistry() }
-    val luaPluginHost = remember(store, pluginCommands, pluginEvents, pluginRenderers, externalPluginsEnabled) {
-        store.createLuaPluginHost(
+    val pluginHost = remember(store, pluginCommands, pluginEvents, pluginRenderers, pluginsEnabled) {
+        store.createPluginHost(
             pluginCommands,
             pluginEvents,
             pluginRenderers,
-            runtimeFactory = if (externalPluginsEnabled) {
-                ::createPlatformLuaRuntime
-            } else {
-                ::disabledPluginRuntimeFactory
-            },
+            runtimeFactory = if (pluginsEnabled) ::createPlatformPluginRuntime else ::disabledPluginRuntimeFactory,
         )
     }
     val scope = rememberCoroutineScope()
@@ -101,9 +104,9 @@ fun App(externalPluginsEnabled: Boolean = true) {
     var syncLogs by appState.syncLogs
     var restored by appState.restored
 
-    DisposableEffect(databaseDriver, luaPluginHost) {
+    DisposableEffect(databaseDriver, pluginHost) {
         onDispose {
-            luaPluginHost.close()
+            pluginHost.close()
             databaseDriver.close()
         }
     }
@@ -140,7 +143,7 @@ fun App(externalPluginsEnabled: Boolean = true) {
                 syncConflicts = withContext(Dispatchers.Default) { store.loadSyncConflicts() }
                 syncLogs = withContext(Dispatchers.Default) { store.loadSyncLog() }
                 pluginRendererAssignments = pluginRendererAssignmentsForBuild(
-                    externalPluginsEnabled,
+                    pluginsEnabled,
                     withContext(Dispatchers.Default) { store.loadPluginRendererAssignments() },
                 )
                 saved.auth?.let { auth ->
@@ -191,9 +194,9 @@ fun App(externalPluginsEnabled: Boolean = true) {
                 error = initialized.error
             }
             collapsedDeckIds = withContext(Dispatchers.Default) { store.loadCollapsedDeckIds() }
-            if (externalPluginsEnabled) {
+            if (pluginsEnabled) {
                 try {
-                    pluginHostState = withContext(Dispatchers.Default) { luaPluginHost.reload() }
+                    pluginHostState = withContext(Dispatchers.Default) { pluginHost.reload() }
                 } catch (pluginFailure: Exception) {
                     error = "Collection opened; plugins did not start: ${pluginFailure.message ?: "unknown error"}"
                 }
@@ -305,7 +308,7 @@ fun App(externalPluginsEnabled: Boolean = true) {
         }
         val rendered = withContext(Dispatchers.Default) {
             renderAssignedReviewCards(
-                host = luaPluginHost,
+                host = pluginHost,
                 registry = pluginRenderers,
                 assignments = pluginRendererAssignments,
                 collection = displayCollection,
@@ -315,7 +318,7 @@ fun App(externalPluginsEnabled: Boolean = true) {
             )
         }
         pluginRenderedCards = rendered.cards
-        pluginHostState = luaPluginHost.state()
+        pluginHostState = pluginHost.state()
         rendered.failure?.let { error = "Card renderer failed; original card shown: $it" }
     }
     val undoReview: suspend (String) -> ReviewCard? = { deckName ->
@@ -446,7 +449,7 @@ fun App(externalPluginsEnabled: Boolean = true) {
         destination = destination.navigate(CollectionNavigationAction.OpenOptions)
     }
     val openPlugins: () -> Unit = {
-        if (externalPluginsEnabled) {
+        if (pluginsEnabled) {
             destination = destination.navigate(CollectionNavigationAction.OpenPlugins)
             selectedDeck = null
             desktopStudyStarted = false
@@ -675,10 +678,10 @@ fun App(externalPluginsEnabled: Boolean = true) {
         savedAccounts = savedAccounts,
         interchangeDocuments = interchangePlatform.documents,
         interchangeService = interchangeService,
-        luaPluginHost = luaPluginHost,
+        pluginHost = pluginHost,
         pluginCommands = pluginCommands,
         pluginRenderers = pluginRenderers,
-        externalPluginsEnabled = externalPluginsEnabled,
+        externalPluginsEnabled = pluginsEnabled,
         actions = AppContentActions(
             undoReview = undoReview,
             requestSync = requestSync,

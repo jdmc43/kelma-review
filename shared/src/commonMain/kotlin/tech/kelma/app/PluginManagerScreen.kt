@@ -193,12 +193,12 @@ private fun PluginManagerBody(
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text(
-                    "Lua plugins",
+                    "Plugins",
                     color = textPrimary,
                     fontSize = if (isDesktopApp) 30.sp else 26.sp,
                     fontWeight = FontWeight.Bold,
                 )
-                Text("Portable Lua 5.4 extensions", color = textSecondary)
+                Text("Desktop plugins (.jar)", color = textSecondary)
             }
             Icon(
                 Icons.Rounded.Extension,
@@ -214,8 +214,8 @@ private fun PluginManagerBody(
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text("Plugins are third-party software", color = textPrimary, fontWeight = FontWeight.Bold)
                 Text(
-                    "Review the requested capabilities before installing. Runtime limits and restricted " +
-                        "libraries reduce exposure, but plugins are not an operating-system security boundary.",
+                    "A plugin runs inside Kelma Review with the same access to your files and network as " +
+                        "the app itself. Install only plugins you trust, from publishers you trust.",
                     color = textSecondary,
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -233,7 +233,7 @@ private fun PluginManagerBody(
                     )
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(onClick = onInstall, enabled = !busy) { Text("Install .kelmaplugin") }
+                    Button(onClick = onInstall, enabled = !busy) { Text("Install plugin (.jar)") }
                     OutlinedButton(onClick = onReload, enabled = !busy) {
                         Icon(Icons.Rounded.Refresh, null)
                         Text(" Reload")

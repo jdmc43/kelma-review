@@ -19,7 +19,7 @@ class PluginPersistenceTest {
             name = "Sample",
             version = "1.0.0",
             apiVersion = KelmaPluginApiVersion,
-            entrypoint = "plugin/sample.lua",
+            entrypoint = "org.example.HelloPlugin",
             capabilities = setOf(PluginCapability.Commands, PluginCapability.Events),
         )
 

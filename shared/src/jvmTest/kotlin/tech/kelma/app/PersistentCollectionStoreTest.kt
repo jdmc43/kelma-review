@@ -2100,7 +2100,7 @@ class PersistentCollectionStoreTest {
                 name = "Cleanup Test",
                 version = "1.0.0",
                 apiVersion = KelmaPluginApiVersion,
-                entrypoint = "plugin/cleanup.lua",
+                entrypoint = "org.example.HelloPlugin",
             ),
         )
         store.appendSyncLog(SyncProgress(phase = "TEST", message = "content-free diagnostic"))

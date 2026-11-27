@@ -57,7 +57,11 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-private val DesktopCountColumn = 78.dp
+// The deck list reads like Anki's: regular-weight 15 sp names, compact rows, narrow counts.
+private val DesktopCountColumn = 58.dp
+private val DesktopDeckRowHeight = 32.dp
+private val DesktopRowInset = 8.dp
+private val DesktopGearColumn = 30.dp
 
 @Composable
 fun DesktopDeckListScreen(
@@ -286,14 +290,14 @@ private fun DesktopSyncSummary(
 @Composable
 private fun DesktopTableHeader() {
     Row(
-        modifier = Modifier.fillMaxWidth().height(42.dp).padding(horizontal = 14.dp),
+        modifier = Modifier.fillMaxWidth().height(36.dp).padding(horizontal = DesktopRowInset),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        TableLabel("DECK", Modifier.weight(1f), TextAlign.Start)
-        TableLabel("NEW", Modifier.width(DesktopCountColumn), TextAlign.Center)
-        TableLabel("LEARN", Modifier.width(DesktopCountColumn), TextAlign.Center)
-        TableLabel("DUE", Modifier.width(DesktopCountColumn), TextAlign.Center)
-        Spacer(Modifier.width(38.dp))
+        TableLabel("Deck", Modifier.weight(1f), TextAlign.Start)
+        TableLabel("New", Modifier.width(DesktopCountColumn), TextAlign.Center)
+        TableLabel("Learn", Modifier.width(DesktopCountColumn), TextAlign.Center)
+        TableLabel("Due", Modifier.width(DesktopCountColumn), TextAlign.Center)
+        Spacer(Modifier.width(DesktopGearColumn))
     }
 }
 
@@ -302,10 +306,9 @@ private fun TableLabel(text: String, modifier: Modifier, alignment: TextAlign) {
     Text(
         text = text,
         modifier = modifier,
-        color = KelmaDesktopColors.TextMuted,
-        fontSize = 10.sp,
-        fontWeight = FontWeight.Bold,
-        letterSpacing = 1.2.sp,
+        color = KelmaDesktopColors.TextPrimary,
+        fontSize = 15.sp,
+        fontWeight = FontWeight.SemiBold,
         textAlign = alignment,
     )
 }
@@ -334,17 +337,17 @@ private fun DesktopDeckRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(48.dp)
-            .background(background, RoundedCornerShape(11.dp))
+            .height(DesktopDeckRowHeight)
+            .background(background, RoundedCornerShape(7.dp))
             .hoverable(interactions)
             .pointerHoverIcon(PointerIcon.Hand)
             .clickable(interactionSource = interactions, indication = null) { onOpenDeck(deck) }
-            .padding(horizontal = 14.dp)
+            .padding(horizontal = DesktopRowInset)
             .testTag("deck-row-${deck.id}"),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Spacer(Modifier.width((depth * 16).dp))
-        Box(modifier = Modifier.width(30.dp), contentAlignment = Alignment.Center) {
+        Box(modifier = Modifier.width(24.dp), contentAlignment = Alignment.Center) {
             if (hasChildren) {
                 DesktopIconButton(
                     icon = if (isCollapsed) {
@@ -364,17 +367,17 @@ private fun DesktopDeckRow(
         DeckSyncBadgeSlot(deck.pendingChanges)
         Text(
             text = deck.name.substringAfterLast("::"),
-            modifier = Modifier.weight(1f).padding(start = 11.dp),
+            modifier = Modifier.weight(1f).padding(start = 8.dp),
             color = KelmaDesktopColors.TextPrimary,
             fontSize = 15.sp,
-            fontWeight = FontWeight.SemiBold,
+            fontWeight = FontWeight.Normal,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
         DesktopCount(deck.newCount, KelmaDesktopColors.New, DesktopCountColumn)
         DesktopCount(deck.learningCount, KelmaDesktopColors.Learn, DesktopCountColumn)
         DesktopCount(deck.dueCount, KelmaDesktopColors.Due, DesktopCountColumn)
-        Box(modifier = Modifier.width(38.dp), contentAlignment = Alignment.Center) {
+        Box(modifier = Modifier.width(DesktopGearColumn), contentAlignment = Alignment.Center) {
             DesktopIconButton(
                 icon = Icons.Rounded.Settings,
                 contentDescription = "Deck options for ${deck.name}",
@@ -458,8 +461,8 @@ private fun DesktopCount(value: Int, color: Color, width: Dp) {
         text = value.toString(),
         modifier = Modifier.width(width),
         color = if (value == 0) KelmaDesktopColors.TextMuted else color,
-        fontSize = 14.sp,
-        fontWeight = if (value == 0) FontWeight.Normal else FontWeight.Bold,
+        fontSize = 15.sp,
+        fontWeight = FontWeight.Normal,
         textAlign = TextAlign.Center,
     )
 }

@@ -954,18 +954,12 @@ class PersistentCollectionStore(
 
     fun listInstalledPlugins(): List<InstalledPlugin> = plugins.list()
 
-    internal fun createLuaPluginHost(
+    internal fun createPluginHost(
         commands: PluginCommandRegistry,
         events: PluginEventRegistry,
         renderers: PluginRendererRegistry,
-        runtimeFactory: (
-            String,
-            Set<PluginCapability>,
-            Map<String, ByteArray>,
-            String,
-            PluginRuntimeLimits,
-        ) -> PlatformLuaRuntime = ::createPlatformLuaRuntime,
-    ): LuaPluginHost = LuaPluginHost(plugins, json, commands, events, renderers, runtimeFactory = runtimeFactory)
+        runtimeFactory: PluginRuntimeFactory = ::createPlatformPluginRuntime,
+    ): PluginHost = PluginHost(plugins, json, commands, events, renderers, runtimeFactory = runtimeFactory)
 
     fun installPluginManifest(
         manifest: PluginManifest,

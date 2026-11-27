@@ -1,35 +1,19 @@
-# Kotlin plugin system
+# Plugin system
 
 ## Principle
 
-Plugins are trusted third-party code. Installing one is equivalent to installing software. Kelma uses restricted Lua libraries, capability gates, memory and instruction budgets, safe mode, and diagnostics as defense in depth, but does not claim that an in-process runtime is an operating-system security boundary.
+Plugins are trusted third-party code. Installing one is equivalent to installing software: a plugin
+runs inside Kelma Review with the same access to files and network as the app itself. Kelma provides
+capability declarations, safe mode, enable/disable, per-plugin failure attribution, and logs, but no
+sandbox. Plugin Manager says so before every install.
 
-Lua is the portable public plugin format. JVM JARs are an optional desktop-only escape hatch.
+Plugins are **desktop JARs**. Kelma Review for desktop loads them; the Android and iOS apps have no
+plugins. (Earlier versions embedded a Lua 5.4 runtime on every platform; it was removed. A Lua plugin
+installed before stays listed, marked as no longer running, until the learner uninstalls it.)
 
-## Lua runtime
+## Package
 
-Embed standard Lua 5.4, not LuaJIT.
-
-```text
-Android/JVM desktop -> JNI -> Lua C API
-iOS                 -> Kotlin/Native cinterop -> Lua C API
-```
-
-The same Lua plugin source runs on desktop, Android, and the iOS community build. Kelma vendors unmodified standard Lua 5.4.8 under its MIT license and wraps it with a small Apache-2.0 C host.
-
-## Package layout
-
-A `.kelmaplugin` file is a ZIP archive with this layout:
-
-```text
-manifest.json
-plugin/example.lua
-lua/example/init.lua
-lua/example/server.lua
-LICENSE
-```
-
-The loader provides Neovim-like runtime paths and `require()` behavior. A plugin's own `lua/` tree takes precedence over dependency runtime paths. Plugins may depend on other plugins by stable ID and compatible minimum semantic version.
+A plugin is an ordinary `.jar` with a `kelma-plugin.json` manifest at its root:
 
 ```json
 {
@@ -37,132 +21,84 @@ The loader provides Neovim-like runtime paths and `require()` behavior. A plugin
   "name": "Hello",
   "version": "1.0.0",
   "apiVersion": 1,
-  "entrypoint": "plugin/example.lua",
-  "runtime": "lua54",
-  "capabilities": ["Commands", "Events"],
+  "runtime": "jvm",
+  "entrypoint": "org.example.hello.HelloPlugin",
+  "capabilities": ["Commands", "Events", "Ui"],
   "dependencies": []
 }
 ```
 
-Create the archive with ordinary ZIP tooling and give it the `.kelmaplugin`
-extension. Paths must be relative, portable ASCII, and unique; packages are limited to 16 MiB,
-256 files, and 2 MiB per file.
+- `id`: reverse-domain, lower case. Command and renderer ids must start with `<id>.`.
+- `version` and dependency `minimumVersion`: semantic `major.minor.patch`.
+- `runtime` must be `jvm`; `entrypoint` names a public class implementing
+  `tech.kelma.plugin.KelmaPlugin` with a public no-argument constructor, and the JAR must contain it.
+- JARs are limited to 16 MiB (64 MiB expanded, 20,000 entries).
 
-## Implemented runtime
+Install from **Options → Plugins → Install plugin (.jar)**. Kelma previews the manifest's
+capabilities before installing and stores the JAR in its application database.
 
-The shared client provides API generation 1 manifests pinned to the `lua54`
-runtime identifier, semantic-version validation, deterministic minimum-version
-dependency ordering, cycle/missing-dependency blocking, durable package files,
-enablement, logs, and safe mode, JSON-compatible boundary values, and
-namespaced command, event, and pure renderer registries.
+## API (`tech.kelma.plugin`, API generation 1)
 
-Standard Lua 5.4 executes through JNI on JVM desktop and Android and through
-Kotlin/Native cinterop on iOS. Every plugin receives a separate state with a
-32 MiB allocator budget and a five-million-instruction budget per protected
-call. `io`, `os`, `debug`, `load`, `loadfile`, `dofile`, bytecode dumping, dynamic
-C loaders, and the ordinary filesystem package searchers are unavailable. Package paths, expanded
-sizes, file counts, UTF-8 Lua sources, entrypoints, dependencies, namespaces,
-and declared capabilities are validated before execution. The manager previews
-capabilities before installation and supports reload, disable, safe mode,
-diagnostics, command inspection, durable deck/note-type renderer assignments,
-and uninstall. Failures and startup time are attributed by plugin ID without
-card contents. Assignments survive temporary plugin unavailability and safely
-fall back to the original Kelma card.
+```kotlin
+interface KelmaPlugin {
+    fun start(context: KelmaPluginContext)
+    fun stop() {}
+}
 
-## Current Lua API
+interface KelmaPluginContext {
+    val pluginId: String
+    fun registerCommand(id: String, title: String, handler: KelmaCommandHandler) // Commands
+    fun subscribe(event: String, handler: KelmaEventHandler)                     // Events
+    fun registerRenderer(id: String, renderer: KelmaCardRenderer)                // Ui
+    fun log(level: String, message: String)  // debug, info, warn, error
+}
 
-```text
-kelma.commands.register(id, title, callback)
-kelma.events.subscribe(name, callback)
-kelma.ui.register_renderer(id, callback)
-kelma.json.encode(value) / decode(text)
-kelma.json.null / array(value) / object(value)
-kelma.log.debug/info/warn/error(message)
-kelma.capabilities.commands/events/ui
+fun interface KelmaCommandHandler { fun invoke(arguments: Map<String, Any?>): Any? }
+fun interface KelmaEventHandler { fun onEvent(name: String, attributes: Map<String, Any?>) }
+fun interface KelmaCardRenderer { fun render(card: KelmaCard): KelmaCard }
+data class KelmaCard(val html: String, val css: String)
 ```
 
-`app.started` and content-free `review.completed` events are currently emitted.
-Command arguments and results are JSON-compatible values. Every command also
-receives `arguments.kelma_context`, containing the current screen and optional
-deck name without note content. Stable screen values are `sign-in`,
-`deck-overview`, `review`, `decks`, `add`, `browse`, `options`, `plugins`,
-`stats`, and `sync`. Commands are searchable and keyboard-selectable through Cmd/Ctrl+K on desktop.
-Mobile exposes plugin command actions from Plugin Manager rather than a global
-command-palette modal. Built-in
-navigation/sync commands use the same registry.
+Plugins register everything in `start()`; registering requires the matching capability in the
+manifest. Values crossing the boundary are JSON-compatible (`null`, `Boolean`, `Number`, `String`,
+`List`, `Map<String, *>`); anything else fails the call, attributed to the plugin. Compile against the
+Kelma Review desktop JAR as `compileOnly` (the API classes come from the app at run time). Java and
+Kotlin plugins both work; see `examples/hello-plugin`.
 
-Renderers are pure HTML/CSS transforms. Users explicitly assign them by deck or
-note type in Plugin Manager; the nearest assigned deck or parent deck takes
-precedence. Kelma renders both the complete question and complete answer,
-validates 2 MiB HTML and 512
-KiB CSS limits, caches unchanged results for the active queue, and falls back
-to the unmodified card on failure. Platform WebViews, media embedding, CSP,
-network blocking, and external-navigation blocking remain owned by Kelma.
+- **Commands** appear in Cmd/Ctrl+K and Plugin Manager. Every command receives
+  `arguments["kelma_context"]` with the current `screen` and, when a deck is open, `deck_name`
+  (no note content). Screen values: `sign-in`, `deck-overview`, `review`, `decks`, `add`,
+  `browse`, `options`, `plugins`, `stats`, `sync`.
+- **Events**: `app.started`, and content-free `review.completed` (with `rating`).
+- **Renderers** are pure HTML/CSS transforms of a card side's complete question or answer.
+  Learners assign them by deck or note type in Plugin Manager; the nearest assigned deck or parent
+  deck wins. Kelma validates 2 MiB HTML and 512 KiB CSS limits, caches results for the active queue,
+  and falls back to the unmodified card on failure. WebViews, media, CSP, and navigation stay Kelma's.
 
-The capability-versioned roadmap adds `kelma.services`, transactional notes,
-cards, decks, and reviews, portable host UI trees, permission-scoped files and
-networking, workers/channels, desktop processes, plugin-owned SQLite, storage,
-and OS-backed secrets. These names are not exposed until their host service is
-implemented; declaration in a manifest does not manufacture an unavailable API.
+## Runtime
 
-Built-in behavior should use registries that plugins can also target:
-
-```text
-SchedulerRegistry
-ReviewQueueRegistry
-RendererRegistry
-ImporterRegistry
-ExporterRegistry
-SyncProviderRegistry
-ScreenRegistry
-CommandRegistry
-```
-
-## Concurrency
-
-Lua coroutines are cooperative, not parallel. Each OS worker thread receives a separate `lua_State`; workers communicate with messages. A plugin may own a localhost server using raw sockets or a bundled generic event-loop library. Kelma-specific server code is not required.
-
-Collection calls from worker states use asynchronous RPC onto the core/database dispatcher.
-
-## UI
-
-Portable Lua plugins return a host UI tree rendered by Compose. Generic escape hatches include canvas, HTML/WebView, menus, keyboard/gesture hooks, and custom windows where supported.
-
-Desktop JAR plugins may implement direct Compose panels, but these are tied to the supported Kotlin and Compose ABI range.
-
-## Desktop JAR plugins
-
-After the Lua API stabilizes, use PF4J or a similarly small Apache-licensed loader. A JAR can implement the public `KelmaPlugin` interface and use JVM libraries. JAR plugins are fully trusted and desktop-only.
-
-The public JAR SDK must not expose internal database classes. Restart-after-update is acceptable initially; reliable class unloading is not a requirement.
-
-## Platform limits
-
-- Desktop: Lua, workers, processes, and optional native/JAR modules.
-- Android: Lua within the app sandbox; background servers require Android lifecycle/foreground-service support.
-- iOS community: Lua while the app is active; no downloaded native modules or arbitrary processes.
-- iOS App Store: no external plugin runtime in the submitted build. The dedicated `AppStore` Xcode
-  configuration compiles a plugin-free Kotlin framework, omits the Lua cinterop/library, disables plugin
-  startup and review events, and removes Plugin Manager entry points.
-
-Android Play and community builds currently retain the restricted Lua plugin runtime. Google Play permits
-interpreted code when it does not download or modify executable code contrary to policy, and this product's
-plugin packages are user-selected study extensions rather than a remote app-update mechanism. Revisit that
-decision if Play policy or the plugin API expands; iOS remains strictly plugin-free for App Store review.
-
-## Compatibility
-
-Every API is versioned. Prefer additive evolution. Plugins declare a supported API range. Collection changes use stable DTOs rather than internal Kotlin classes.
+Each plugin loads in a class loader of its own whose parent provides the public API. Plugins load in
+dependency order (missing, too-old, and cyclic dependencies are blocked with a reason). Kelma calls
+`start()` when the plugin loads (startup, install, enable, leaving safe mode) and `stop()` before
+unloading it; reloading closes the class loader. A plugin that fails to start, registers without the
+capability, or throws from a command, event, or renderer is marked Failed with the reason and logged;
+the rest of Kelma keeps running.
 
 ## Operational requirements
 
-- Start without plugins/safe mode.
+- Start without plugins (safe mode).
 - Attribute errors and startup time to a plugin.
-- Disable a plugin without deleting its data.
+- Disable a plugin without deleting its data; keep renderer assignments while it is unavailable.
 - Detect dependency cycles.
-- Preserve plugin configuration when temporarily unavailable.
-- Provide logs, event/command inspection, and a plugin bisect command.
+- Provide logs and command inspection in Plugin Manager.
 
-## Power test
+## Compatibility
 
-An independent Lua plugin must be able to implement an AnkiConnect-compatible localhost API using only generic sockets/workers/JSON and public collection APIs. No AnkiConnect-specific Kotlin code is allowed.
+The API is versioned (`apiVersion`) and evolves additively. Plugins must not depend on Kelma's
+internal classes: only `tech.kelma.plugin` is public, and the rest may change in any release.
+Restart-after-update is acceptable; class unloading on reload is best-effort.
+
+## Platform limits
+
+- Desktop (macOS, Windows, Linux): JAR plugins.
+- Android and iOS: no plugins (the plugin runtime, Plugin Manager, and plugin commands are absent).

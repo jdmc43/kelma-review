@@ -2,6 +2,8 @@
 
 Status: Kotlin Multiplatform selected on 2026-07-25; the Flutter comparison is concluded.
 
+> Update (2026-11): the Lua plugin runtime in this plan was later removed in favour of desktop JAR plugins (`PLUGIN_SYSTEM.md`).
+
 ## Purpose
 
 Complete the original vertical-slice proofs in the selected Kotlin stack, then harden them into production architecture. The measurements below remain useful engineering baselines rather than framework-selection gates.

@@ -69,7 +69,11 @@ internal fun buildCardHtmlDocument(
                 "<span class=\"kelma-audio-play\" aria-hidden=\"true\"></span></a>"
         }
     }
-    val foreground = if (desktop) "#F4F1E7" else "#F4F1E7"
+    // The card's text, links and quote rule follow the colour scheme in use.
+    val foreground = (if (desktop) KelmaDesktopColors.TextPrimary else KelmaColors.TextPrimary).cssHex()
+    val accent = KelmaColors.Gold.cssHex()
+    val link = KelmaColors.GoldSoft.cssHex()
+    val onAccent = KelmaColors.Background.cssHex()
     val bodyLayout = if (desktop) {
         "display:grid;grid-template-rows:minmax(24px,1fr) auto minmax(24px,3fr)"
     } else {
@@ -96,16 +100,16 @@ internal fun buildCardHtmlDocument(
 html,body{margin:0;padding:0;min-height:100%;background:transparent;color:$foreground;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow-wrap:anywhere}
 body{box-sizing:border-box;min-height:100vh;font-size:${if (desktop) 20 else 22}px;line-height:1.5;text-align:center;$bodyLayout}
 #kelma-card-content{box-sizing:border-box;width:100%;$contentLayout}
-pre{white-space:pre-wrap;text-align:left} blockquote{margin-left:1em;border-left:3px solid #C9AC6B;padding-left:.8em}
-a{color:#DCC48F} $RichCardAccessibilityCss
+pre{white-space:pre-wrap;text-align:left} blockquote{margin-left:1em;border-left:3px solid $accent;padding-left:.8em}
+a{color:$link} $RichCardAccessibilityCss
 ${face.css}
 html,body.card{background:transparent!important} body.card{color:$foreground!important;$bodyLayout}
 #kelma-card-content{$contentLayout}
 html,body{max-width:100%!important;overflow-x:hidden!important;overflow-y:auto!important}
 img{$imageBounds;height:auto!important;object-fit:contain!important} table{max-width:100%;border-collapse:collapse}
 .kelma-missing-media{display:inline-block!important;padding:6px 9px!important;border:1px solid #FF6B73!important;border-radius:6px!important;color:#FFB0B5!important;font:13px/1.3 sans-serif!important}
-a.kelma-audio{all:initial!important;box-sizing:border-box!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;width:38px!important;height:38px!important;margin:2px 4px!important;border-radius:50%!important;border:1px solid #DCC48F!important;background:#C9AC6B!important;vertical-align:middle!important;cursor:pointer!important}
-a.kelma-audio .kelma-audio-play{all:initial!important;display:block!important;box-sizing:border-box!important;width:0!important;height:0!important;margin-left:3px!important;border-top:7px solid transparent!important;border-bottom:7px solid transparent!important;border-left:11px solid #0F100A!important}
+a.kelma-audio{all:initial!important;box-sizing:border-box!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;width:38px!important;height:38px!important;margin:2px 4px!important;border-radius:50%!important;border:1px solid $link!important;background:$accent!important;vertical-align:middle!important;cursor:pointer!important}
+a.kelma-audio .kelma-audio-play{all:initial!important;display:block!important;box-sizing:border-box!important;width:0!important;height:0!important;margin-left:3px!important;border-top:7px solid transparent!important;border-bottom:7px solid transparent!important;border-left:11px solid $onAccent!important}
 </style>
 </head>
 <body class="card" style="background-color:transparent!important;color:$foreground!important"><!--kelma-card-body-start--><main id="kelma-card-content">$body</main><!--kelma-card-body-end-->
@@ -120,13 +124,14 @@ internal fun cardDomUpdateScript(html: String): String {
     val body = html.substringAfter(CardBodyStartMarker, "").substringBefore(CardBodyEndMarker)
     val encodedCss = Base64.Default.encode(css.encodeToByteArray())
     val encodedBody = Base64.Default.encode(body.encodeToByteArray())
+    val foreground = (if (isDesktopApp) KelmaDesktopColors.TextPrimary else KelmaColors.TextPrimary).cssHex()
     val scrollToAnswer = html.contains("getElementById('answer')")
     return """
         (function(){
           var decode=function(value){var bytes=Uint8Array.from(atob(value),function(c){return c.charCodeAt(0);});return new TextDecoder('utf-8').decode(bytes);};
           document.getElementById('kelma-card-style').textContent=decode('$encodedCss');
           document.body.className='card';
-          document.body.setAttribute('style','margin:0;background:transparent!important;color:#F4F1E7!important');
+          document.body.setAttribute('style','margin:0;background:transparent!important;color:$foreground!important');
           document.body.innerHTML=decode('$encodedBody');
           Array.from(document.body.querySelectorAll('script')).forEach(function(oldScript){
             var script=document.createElement('script');

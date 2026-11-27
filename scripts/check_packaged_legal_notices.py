@@ -12,7 +12,6 @@ EXPECTED = {
     "LICENSE.txt": (ROOT / "LICENSE").read_bytes(),
     "NOTICE.txt": (ROOT / "NOTICE").read_bytes(),
     "THIRD_PARTY_NOTICES.md": (ROOT / "THIRD_PARTY_NOTICES.md").read_bytes(),
-    "LUA_LICENSE.txt": (ROOT / "native/lua/LICENSE").read_bytes(),
 }
 ARCHIVE_SUFFIXES = {".aab", ".apk", ".ipa", ".jar", ".zip"}
 

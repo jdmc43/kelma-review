@@ -46,7 +46,7 @@ class PluginManagerUiTest {
             name = "UI sample",
             version = "1.2.3",
             apiVersion = KelmaPluginApiVersion,
-            entrypoint = "plugin/init.lua",
+            entrypoint = "org.example.HelloPlugin",
             capabilities = setOf(PluginCapability.Commands, PluginCapability.Network),
         )
         val installed = InstalledPlugin(manifest, true, PluginStatus.Installed, null, 1L, 2L)

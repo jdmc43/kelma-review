@@ -33,17 +33,6 @@ android {
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 25
         versionName = "1.0.23"
-        externalNativeBuild {
-            cmake {
-                arguments += "-DANDROID_STL=none"
-            }
-        }
-    }
-    externalNativeBuild {
-        cmake {
-            path = file("../native/lua/CMakeLists.txt")
-            version = "3.22.1"
-        }
     }
     packaging {
         resources {

@@ -6,11 +6,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertHeightIsEqualTo
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.v2.runComposeUiTest
+import androidx.compose.ui.unit.dp
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.test.Test
 import kotlin.test.assertFalse
@@ -39,6 +41,16 @@ class DeckListCollapseUiTest {
         assertFalse(opened.get())
         onNodeWithContentDescription("Expand deck Parent").performClick()
         onNodeWithTag("deck-row-Parent::Child").assertIsDisplayed()
+    }
+
+    @Test
+    fun desktopDeckRowsAreCompactLikeAnkis() = runComposeUiTest {
+        setContent {
+            KelmaTheme {
+                TestDesktopDeckList(decks = listOf(deckSummary("Other")), onOpenDeck = {})
+            }
+        }
+        onNodeWithTag("deck-row-Other").assertHeightIsEqualTo(32.dp)
     }
 }
 
