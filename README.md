@@ -17,16 +17,16 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/jdmc43/kelma-review/releases/download/v1.0.23/KelmaReview-1.0.23.dmg"><img src="docs/images/badges/macos.png" height="48" alt="Download for macOS"></a>
+  <a href="https://github.com/jdmc43/kelma-review/releases/download/v1.0.24/KelmaReview-1.0.24.dmg"><img src="docs/images/badges/macos.png" height="48" alt="Download for macOS"></a>
   &nbsp;
-  <a href="https://github.com/jdmc43/kelma-review/releases/download/v1.0.23/KelmaReview-1.0.23.msi"><img src="docs/images/badges/windows.png" height="48" alt="Download for Windows"></a>
+  <a href="https://github.com/jdmc43/kelma-review/releases/download/v1.0.24/KelmaReview-1.0.24.msi"><img src="docs/images/badges/windows.png" height="48" alt="Download for Windows"></a>
   &nbsp;
-  <a href="https://github.com/jdmc43/kelma-review/releases/download/v1.0.23/kelmareview_1.0.23_amd64.deb"><img src="docs/images/badges/linux.png" height="48" alt="Download for Linux"></a>
+  <a href="https://github.com/jdmc43/kelma-review/releases/download/v1.0.24/kelmareview_1.0.24_amd64.deb"><img src="docs/images/badges/linux.png" height="48" alt="Download for Linux"></a>
 </p>
 
 <p align="center">
   <sub>
-    Desktop 1.0.23: macOS for Apple silicon (signed and notarized), Windows MSI, Linux DEB (x86-64)
+    Desktop 1.0.24: macOS for Apple silicon (signed and notarized), Windows MSI, Linux DEB (x86-64)
     <br>
     <a href="#download">All downloads</a>
     ·
@@ -70,12 +70,12 @@ Kelma Review is a completely clean-room implementation of spaced repitition, wri
 | Platform | Get it | Notes |
 |---|---|---|
 | iPhone and iPad | [App Store](https://apps.apple.com/app/kelma-review/id6800817799) | Updates automatically. |
-| Android | [Google Play](https://play.google.com/store/apps/details?id=tech.kelma.app) · [APK](https://github.com/jdmc43/kelma-review/releases/download/v1.0.23/KelmaReview-1.0.23-Android.apk) | The APK is for direct install on ARM64 devices. |
-| macOS | [DMG](https://github.com/jdmc43/kelma-review/releases/download/v1.0.23/KelmaReview-1.0.23.dmg) | Apple silicon. Signed with Kelma Tech LLC's Developer ID and notarized by Apple. |
-| Windows | [MSI](https://github.com/jdmc43/kelma-review/releases/download/v1.0.23/KelmaReview-1.0.23.msi) | x64 installer. Not yet code-signed, so Windows SmartScreen may ask you to confirm. |
-| Linux | [DEB](https://github.com/jdmc43/kelma-review/releases/download/v1.0.23/kelmareview_1.0.23_amd64.deb) | x86-64, for Debian, Ubuntu, and their derivatives. |
+| Android | [Google Play](https://play.google.com/store/apps/details?id=tech.kelma.app) · [APK](https://github.com/jdmc43/kelma-review/releases/download/v1.0.24/KelmaReview-1.0.24-Android.apk) | The APK is for direct install on ARM64 devices. |
+| macOS | [DMG](https://github.com/jdmc43/kelma-review/releases/download/v1.0.24/KelmaReview-1.0.24.dmg) | Apple silicon. Signed with Kelma Tech LLC's Developer ID and notarized by Apple. |
+| Windows | [MSI](https://github.com/jdmc43/kelma-review/releases/download/v1.0.24/KelmaReview-1.0.24.msi) | x64 installer. Not yet code-signed, so Windows SmartScreen may ask you to confirm. |
+| Linux | [DEB](https://github.com/jdmc43/kelma-review/releases/download/v1.0.24/kelmareview_1.0.24_amd64.deb) | x86-64, for Debian, Ubuntu, and their derivatives. |
 
-The desktop packages and the APK are Kelma Review 1.0.23. Verify them with [`SHA256SUMS.txt`](https://github.com/jdmc43/kelma-review/releases/download/v1.0.23/SHA256SUMS.txt). Each release also includes an unsigned IPA for sideloading with AltStore. Older versions and release notes are on the [releases page](https://github.com/jdmc43/kelma-review/releases).
+The desktop packages and the APK are Kelma Review 1.0.24. Verify them with [`SHA256SUMS.txt`](https://github.com/jdmc43/kelma-review/releases/download/v1.0.24/SHA256SUMS.txt). Each release also includes an unsigned IPA for sideloading with AltStore. Older versions and release notes are on the [releases page](https://github.com/jdmc43/kelma-review/releases).
 
 ## Screenshots
 
